@@ -1,0 +1,296 @@
+Online Skill Assessment System – Data Structure & API Blueprint
+Generated on: 2025-06-07
+
+---
+
+1. Fields Currently Stored in LocalStorage
+
+🧑‍💻 User Data
+- userId: Unique identifier for users
+- faceVerified: Boolean indicating if face verification was successful
+
+📝 Test Configuration
+- adminTests: Array of tests created by admins
+  - testId: Unique identifier for each test
+  - skill: Subject/skill being tested
+  - numQuestions: Number of questions in the test
+  - duration: Test duration in minutes
+
+🧾 Test Form Data
+- testFormData: Candidate information
+  - name: Candidate's name
+  - email: Candidate's email (used as candidate_id)
+
+📚 Test Content
+- testDetails: Details of the current test
+  - skill: Subject/skill being tested
+  - numQuestions: Number of questions
+  - duration: Test duration
+  - testId: Unique identifier
+
+- currentTest: Active test data
+  - questions: Array of question objects
+    - question: Question text
+    - options: Array of answer choices
+    - correct_answer: The correct answer
+
+📊 Test Results
+- testResults: Results of completed tests
+  - score: Number of correct answers
+  - total: Total number of questions
+  - percentage: Score percentage
+  - timestamp: When the test was completed
+
+⚡ Session Management
+- currentSession: Active test session data
+  - sessionId: Unique session identifier
+  - testId: Associated test ID
+  - startTime: When the test began
+  - endTime: When the test ended (if completed)
+  - status: Session status (active, completed, terminated)
+
+---
+
+2. Database Schema (Current Implementation)
+
+🗃️ Tables
+
+📋 Users
+- id: Primary key (INTEGER)
+- name: User's full name (VARCHAR)
+- email: User's email address (VARCHAR, UNIQUE)
+- role: User role (VARCHAR) - 'admin', 'candidate'
+- created_at: Timestamp of user creation
+- updated_at: Timestamp of last update
+
+📝 Tests
+- id: Primary key (INTEGER)
+- test_id: Unique test identifier (INTEGER, UNIQUE)
+- skill: Subject/skill being tested (VARCHAR)
+- num_questions: Number of questions (INTEGER)
+- duration: Test duration in minutes (INTEGER)
+- created_by: Foreign key to Users table
+- created_at: Timestamp of test creation
+- updated_at: Timestamp of last update
+
+❓ Questions
+- id: Primary key (INTEGER)
+- test_id: Foreign key to Tests table
+- question_text: The question content (TEXT)
+- correct_answer: The correct answer (VARCHAR)
+- created_at: Timestamp of question creation
+
+📑 Options
+- id: Primary key (INTEGER)
+- question_id: Foreign key to Questions table
+- option_text: The option content (VARCHAR)
+- is_correct: Boolean indicating if this is the correct option
+- created_at: Timestamp of option creation
+
+🎯 Test Sessions
+- id: Primary key (INTEGER)
+- test_id: Foreign key to Tests table
+- user_id: Foreign key to Users table
+- user_name: Name of the test taker (VARCHAR)
+- user_email: Email of the test taker (VARCHAR)
+- start_time: When the session started (DATETIME)
+- end_time: When the session ended (DATETIME)
+- status: Session status (VARCHAR) - 'active', 'completed', 'terminated'
+- score: Final score (INTEGER)
+- total_questions: Total number of questions (INTEGER)
+- percentage: Score percentage (FLOAT)
+- created_at: Timestamp of session creation
+- updated_at: Timestamp of last update
+
+📝 User Responses
+- id: Primary key (INTEGER)
+- session_id: Foreign key to Test Sessions table
+- question_id: Foreign key to Questions table
+- selected_option_id: Foreign key to Options table
+- is_correct: Boolean indicating if the answer was correct
+- response_time: Time taken to answer (INTEGER, seconds)
+- created_at: Timestamp of response
+
+🔐 Face Verification
+- id: Primary key (INTEGER)
+- user_id: Foreign key to Users table
+- id_photo_path: Path to stored ID photo (VARCHAR)
+- is_verified: Boolean indicating verification status
+- verification_date: When verification was completed (DATETIME)
+- match_score: Face matching confidence score (FLOAT)
+- liveness_score: Liveness detection score (FLOAT)
+- created_at: Timestamp of record creation
+- updated_at: Timestamp of last update
+
+⚠️ Violations
+- id: Primary key (INTEGER)
+- session_id: Foreign key to Test Sessions table
+- violation_type: Type of violation (VARCHAR)
+- description: Violation description (TEXT)
+- severity: Severity level (VARCHAR) - 'low', 'medium', 'high'
+- detected_at: When violation was detected (DATETIME)
+- created_at: Timestamp of record creation
+
+📸 Screen Captures
+- id: Primary key (INTEGER)
+- session_id: Foreign key to Test Sessions table
+- file_path: Path to captured screenshot (VARCHAR)
+- capture_time: When screenshot was taken (DATETIME)
+- file_size: Size of the image file (INTEGER)
+- created_at: Timestamp of record creation
+
+🔍 Behavioral Anomalies
+- id: Primary key (INTEGER)
+- session_id: Foreign key to Test Sessions table
+- anomaly_type: Type of anomaly detected (VARCHAR)
+- confidence_score: Detection confidence (FLOAT)
+- description: Anomaly description (TEXT)
+- detected_at: When anomaly was detected (DATETIME)
+- created_at: Timestamp of record creation
+
+---
+
+3. API Endpoints
+
+🔐 Authentication
+- POST /auth/upload-id-photo - Upload ID photo for verification
+- POST /auth/verify-face - Verify live photo against ID photo
+- POST /auth/check-liveness - Check if photo is of live person
+- POST /auth/validate-session - Validate user session
+- GET /auth/me - Get current user information
+- POST /auth/set-role - Set user role
+- POST /auth/check-role - Check user's current role
+
+👥 User Management
+- POST /api/users/register - Register new user
+- POST /api/users/login - User login
+- GET /api/users/ - Get all users
+- GET /api/users/{user_id} - Get specific user
+- PUT /api/users/{user_id} - Update user
+- DELETE /api/users/{user_id} - Delete user
+
+📝 Test Management
+- POST /api/tests/create - Create new test
+- GET /api/tests/all - Get all tests
+- GET /api/tests/{test_id} - Get specific test
+- PUT /api/tests/{test_id} - Update test
+- DELETE /api/tests/{test_id} - Delete test
+- POST /api/tests/generate - Generate test questions
+- POST /api/tests/submit - Submit test results
+- POST /api/tests/save-snapshot - Save webcam snapshot
+
+🎯 Session Management
+- POST /api/sessions/start - Start new test session
+- POST /api/sessions/submit - Submit completed test
+- POST /api/sessions/{session_id}/submit - Submit by session ID
+- GET /api/sessions/user/{user_id} - Get user's sessions
+- GET /api/sessions/test/{test_id} - Get test's sessions
+- GET /api/sessions/{session_id} - Get specific session
+- GET /api/sessions/completed - Get completed sessions
+- GET /api/sessions/debug/all - Debug: get all sessions
+- GET /api/sessions/user/{user_id}/results - Get user results
+- POST /api/sessions/{session_id}/terminate - Terminate session
+- GET /api/sessions/validate/{session_id} - Validate session
+
+🛡️ Proctoring
+- POST /api/proctoring/violation - Record violation
+- GET /api/proctoring/violations/{session_id} - Get session violations
+- POST /api/proctoring/screen-capture - Save screen capture
+- GET /api/proctoring/screen-captures/{session_id} - Get session captures
+- POST /api/proctoring/behavioral-anomaly - Record anomaly
+- GET /api/proctoring/anomalies/{session_id} - Get session anomalies
+- POST /api/proctoring/webcam-snapshot - Save webcam snapshot
+- POST /api/proctoring/gaze/analyze - Analyze gaze tracking
+
+📊 Analytics
+- GET /api/analytics/user/{user_id} - Get user analytics
+- GET /api/analytics/test/{test_id} - Get test analytics
+- GET /api/analytics/violations - Get violation statistics
+- GET /api/analytics/performance - Get performance statistics
+
+📁 Media
+- GET /api/media/file/{file_path} - Get media file
+- GET /api/media/id-photo/{user_id} - Get user's ID photo
+- GET /api/media/screen-capture/{session_id}/{filename} - Get screen capture
+
+🔍 Monitoring
+- POST /api/monitoring/capture - Capture monitoring frame
+- GET /api/monitoring/suspicious - Get suspicious images
+- POST /api/monitoring/log-event - Log monitoring event
+- POST /api/monitoring/start-screen-capture - Start screen capture
+- POST /api/monitoring/stop-screen-capture - Stop screen capture
+- POST /api/monitoring/save-snapshot - Save monitoring snapshot
+- GET /api/monitoring/suspicious-images/{test_id} - Get suspicious images
+- GET /api/monitoring/monitoring-logs/{test_id} - Get monitoring logs
+
+---
+
+4. Key Features
+
+🔒 Security Features
+- Face verification using ID photo matching
+- Liveness detection to prevent photo spoofing
+- Real-time webcam monitoring
+- Screen capture for proctoring
+- Behavioral anomaly detection
+- Violation tracking and reporting
+
+📊 Test Management
+- Admin test creation with custom parameters
+- Question generation (manual or AI-assisted)
+- Multiple choice questions with options
+- Timed test sessions
+- Real-time test progress tracking
+- Automatic scoring and results
+
+🖥️ Proctoring System
+- Live webcam feed monitoring
+- Screen capture at intervals
+- Gaze tracking (when available)
+- Tab switching detection
+- Fullscreen enforcement
+- Audio monitoring for suspicious sounds
+
+📈 Analytics & Reporting
+- User performance analytics
+- Test completion statistics
+- Violation reports
+- Behavioral analysis
+- Performance trends over time
+
+---
+
+5. File Storage Structure
+
+📁 Media Files
+```
+media/
+├── screenshots/
+│   ├── test_1/
+│   │   ├── webcam_snapshot_2023-06-20_14-30-05.jpg
+│   │   └── screen_capture_2023-06-20_14-30-10.jpg
+│   └── test_2/
+├── snapshots/
+│   ├── 1/
+│   └── 2/
+├── suspicious_snapshots/
+│   ├── 1/
+│   │   └── gaze_violations/
+│   └── 2/
+└── id_photos/
+    ├── 1.jpg
+    ├── 2.jpg
+    └── ...
+```
+
+📊 Logs
+```
+monitoring_logs/
+├── 1_events.json
+├── 2_events.json
+└── ...
+```
+
+---
+
+This document serves as a comprehensive reference for the Online Skill Assessment System's data structure, API endpoints, and key features. It should be updated as the system evolves to maintain accuracy and usefulness for developers and stakeholders.

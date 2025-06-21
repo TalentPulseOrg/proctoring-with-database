@@ -1,0 +1,86 @@
+# Python
+backend/venv/
+backend/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+backend/.env
+backend/.env.*
+
+# Media, logs, and results (generated or user-uploaded)
+backend/media/
+backend/id_photos/
+backend/results/
+backend/monitoring_logs/
+backend/screenshots/
+
+# Node.js
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+frontend/.env.*
+
+# Logs
+*.log
+logs/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Editor directories and files
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Misc
+.env
+.env.*
+!.env.sample
+
+# Python
+backend/venv/
+backend/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+backend/.env
+backend/.env.*
+
+# Media, logs, and results (generated or user-uploaded)
+backend/media/
+backend/id_photos/
+backend/results/
+backend/monitoring_logs/
+backend/screenshots/
+
+# Node.js
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+frontend/.env.*
+
+# Logs
+*.log
+logs/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Editor directories and files
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Misc
+.env
+.env.* 
