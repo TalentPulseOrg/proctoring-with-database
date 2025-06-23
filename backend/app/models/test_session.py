@@ -24,6 +24,7 @@ class TestSession(Base):
     screen_captures = relationship("ScreenCapture", back_populates="session", cascade="all, delete-orphan")
     behavioral_anomalies = relationship("BehavioralAnomaly", back_populates="session", cascade="all, delete-orphan")
     user_responses = relationship("UserResponse", back_populates="session", cascade="all, delete-orphan")
+    snapshot_captures = relationship("SnapshotCapture", back_populates="session", cascade="all, delete-orphan")
 
     def __repr__(self):
         return f"<TestSession(id={self.id}, test_id={self.test_id}, user_id={self.user_id}, status={self.status})>" 

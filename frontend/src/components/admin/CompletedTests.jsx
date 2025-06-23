@@ -609,7 +609,7 @@ const CompletedTests = () => {
               Test Monitoring - {selectedTest.candidate_name}
             </DialogTitle>
             <DialogContent>
-              <TestMonitoringViewer test={selectedTest} />
+              <TestMonitoringViewer testId={selectedTest.session_id || selectedTest.test_id} />
             </DialogContent>
             <DialogActions>
               <Button onClick={() => setShowMonitoring(false)}>Close</Button>

@@ -13,7 +13,7 @@ const TestMonitoringViewer = ({ testId }) => {
     const fetchMonitoringData = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`${API_BASE_URL}/monitoring/test-data/${testId}`);
+        const response = await axios.get(`${API_BASE_URL}/api/monitoring/test-data/${testId}`);
         setMonitoringData(response.data);
       } catch (err) {
         console.error('Error fetching monitoring data:', err);
@@ -27,7 +27,7 @@ const TestMonitoringViewer = ({ testId }) => {
   }, [testId]);
 
   const getImageUrl = (image) => {
-    return `${API_BASE_URL}/monitoring/image/${testId}/${image.type}/${image.filename}`;
+    return `${API_BASE_URL}/api/monitoring/image/${testId}/${image.type}/${image.filename}`;
   };
 
   const formatTimestamp = (timestamp) => {

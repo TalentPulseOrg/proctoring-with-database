@@ -246,7 +246,24 @@ class TestSessionService:
             logger.info(f"Final score calculation: correct_answers={correct_answers}, total_questions={total_questions}, percentage={percentage}")
 
             # Update session with results
-            session.end_time = submit_data.end_time
+            # Convert end_time to IST
+            end_time = submit_data.end_time
+            if end_time:
+                if isinstance(end_time, str):
+                    try:
+                        end_time = datetime.fromisoformat(end_time)
+                    except Exception:
+                        logger.warning(f"Could not parse end_time string: {end_time}")
+                        end_time = datetime.now(IST)
+                if end_time.tzinfo is None:
+                    # Naive datetime, localize to IST
+                    end_time = IST.localize(end_time)
+                else:
+                    # Convert to IST
+                    end_time = end_time.astimezone(IST)
+            else:
+                end_time = datetime.now(IST)
+            session.end_time = end_time
             session.score = correct_answers
             session.total_questions = total_questions
             session.percentage = percentage

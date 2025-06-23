@@ -19,6 +19,7 @@ from app.models.option import Option
 from app.models.violation import Violation
 from app.models.screen_capture import ScreenCapture
 from app.models.behavioral_anomaly import BehavioralAnomaly
+from app.models.snapshot_capture import SnapshotCapture
 
 # Models with foreign keys to multiple tables
 from app.models.user_response import UserResponse
@@ -33,6 +34,7 @@ __all__ = [
     'Option',
     'Violation',
     'ScreenCapture',
+    'SnapshotCapture',
     'BehavioralAnomaly',
     'UserResponse'
 ] 
