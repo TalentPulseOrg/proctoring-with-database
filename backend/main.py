@@ -6,7 +6,7 @@ from fastapi.staticfiles import StaticFiles
 from starlette.responses import PlainTextResponse
 from pathlib import Path
 from app.routes import exam_route, test_route, auth_routes, proctoring_events, monitoring, user_routes
-from app.routes import test_api, proctoring_api, analytics, face_verification_api, media_routes
+from app.routes import test_api, proctoring_api, analytics, face_verification_api, media_routes, violation_analytics
 from app.routes.session_api import router as session_api_router  # Import the database-based session API
 from app.utils.error_handlers import (
     ProctoringException,
@@ -222,6 +222,7 @@ try:
     app.include_router(session_api_router)
     app.include_router(proctoring_api.router)
     app.include_router(analytics.router)
+    app.include_router(violation_analytics.router)
     app.include_router(face_verification_api.router)
     app.include_router(media_routes.router)
 except Exception as e:

@@ -1,7 +1,8 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { recordViolation, saveScreenCapture, getProctoringData } from '../api/api';
+import { recordViolation, saveScreenCapture, getProctoringData, startTestSession } from '../api/api';
 import { useWarning } from './WarningContext';
+import { useEnhancedViolationLogger } from '../hooks/useEnhancedViolationLogger';
 
 const ScreenMonitorContext = createContext();
 
@@ -30,6 +31,9 @@ export const ScreenMonitorProvider = ({ children }) => {
     const keyHandlerRef = useRef(null);
     const captureIntervalRef = useRef(null);
     const { handleViolation: handleWarning } = useWarning();
+    
+    // Initialize enhanced violation logger
+    const violationLogger = useEnhancedViolationLogger(sessionId);
 
     // Get the correct fullscreen method for the browser
     const getFullscreenElement = () => {
@@ -47,47 +51,151 @@ export const ScreenMonitorProvider = ({ children }) => {
             element.msRequestFullscreen;
     };
 
+    // Enhanced violation logging when session ID changes
+    useEffect(() => {
+        console.log('Session ID changed to:', sessionId, 'violationLogger available:', !!violationLogger);
+        if (sessionId && violationLogger) {
+            console.log('Starting violation logging for session:', sessionId);
+            const started = violationLogger.startLogging();
+            console.log('Violation logging started:', started);
+        }
+        return () => {
+            if (violationLogger) {
+                console.log('Stopping violation logging');
+                violationLogger.stopLogging();
+            }
+        };
+    }, [sessionId]); // Removed violationLogger from dependencies to prevent infinite loop
+
     // Global key handler to prevent Escape key
     const preventEscapeKey = useCallback((e) => {
-      // Prevent function keys (F1-F12)
-      if (e.key.startsWith('F') && e.key.length <= 3) {
-        e.preventDefault();
-        e.stopPropagation();
-        handleWarning('keyboard_shortcut');
-        return false;
-      }
+        let violationType = null;
+        let keyDescription = '';
+        
+        // Prevent function keys (F1-F12)
+        if (e.key.startsWith('F') && e.key.length <= 3) {
+            e.preventDefault();
+            e.stopPropagation();
+            violationType = 'function_key';
+            keyDescription = e.key;
+            handleWarning('keyboard_shortcut');
+            // Log keyboard shortcut violation
+            if (violationLogger) {
+                violationLogger.logKeyboardShortcut(keyDescription);
+            }
+            return false;
+        }
 
-      // Prevent inspect element shortcuts
-      if (e.ctrlKey && e.shiftKey && 
-          (e.key === 'I' || e.key === 'i' || 
-           e.key === 'C' || e.key === 'c' || 
-           e.key === 'J' || e.key === 'j' || 
-           e.key === 'K' || e.key === 'k')) {
-        e.preventDefault();
-        e.stopPropagation();
-        handleWarning('inspect_element_attempt');
-        return false;
-      }
+        // Prevent inspect element shortcuts
+        if (e.ctrlKey && e.shiftKey && 
+            (e.key === 'I' || e.key === 'i' || 
+             e.key === 'C' || e.key === 'c' || 
+             e.key === 'J' || e.key === 'j' || 
+             e.key === 'K' || e.key === 'k')) {
+            e.preventDefault();
+            e.stopPropagation();
+            violationType = 'inspect_element';
+            keyDescription = `Ctrl+Shift+${e.key.toUpperCase()}`;
+            handleWarning('inspect_element_attempt');
+            // Log keyboard shortcut violation
+            if (violationLogger) {
+                violationLogger.logKeyboardShortcut(keyDescription);
+            }
+            return false;
+        }
+        
+        // Prevent common copy/paste/cut shortcuts
+        if (e.ctrlKey && (e.key === 'c' || e.key === 'C' || e.key === 'v' || e.key === 'V' || e.key === 'x' || e.key === 'X')) {
+            e.preventDefault();
+            e.stopPropagation();
+            violationType = 'copy_paste';
+            keyDescription = `Ctrl+${e.key.toUpperCase()}`;
+            console.log('Copy/paste shortcut detected:', keyDescription, 'session ID:', sessionId);
+            handleWarning('keyboard_shortcut');
+            // Log keyboard shortcut violation
+            if (violationLogger) {
+                console.log('Calling violationLogger.logKeyboardShortcut() for copy/paste');
+                violationLogger.logKeyboardShortcut(keyDescription);
+            } else {
+                console.log('violationLogger is not available for copy/paste');
+            }
+            return false;
+        }
+        
+        // Prevent Alt+Tab (though this is harder to catch)
+        if (e.altKey && e.key === 'Tab') {
+            e.preventDefault();
+            e.stopPropagation();
+            violationType = 'alt_tab';
+            keyDescription = 'Alt+Tab';
+            handleWarning('keyboard_shortcut');
+            // Log keyboard shortcut violation
+            if (violationLogger) {
+                violationLogger.logKeyboardShortcut(keyDescription);
+            }
+            return false;
+        }
 
-      // Prevent Escape key
-      if (e.key === 'Escape' || e.keyCode === 27) {
-        e.preventDefault();
-        e.stopPropagation();
-        handleWarning('escape_key_pressed');
-        return false;
-      }
-    }, [handleWarning]);
+        // Prevent Escape key
+        if (e.key === 'Escape' || e.keyCode === 27) {
+            e.preventDefault();
+            e.stopPropagation();
+            violationType = 'escape_key';
+            keyDescription = 'Escape';
+            handleWarning('escape_key_pressed');
+            // Log keyboard shortcut violation
+            if (violationLogger) {
+                violationLogger.logKeyboardShortcut(keyDescription);
+            }
+            return false;
+        }
+    }, [handleWarning]); // Removed violationLogger from dependencies
 
     // Initialize proctoring session
     const initSession = async (testId) => {
         try {
             setLoading(true);
             setError(null);
-            // Here we would use a proper session initialization API
-            // For now, we'll just set a session ID directly
-            const sid = `test_${testId}_${Date.now()}`;
-            setSessionId(sid);
-            return sid;
+            
+            // Get user info from localStorage or use defaults for testing
+            const storedUser = localStorage.getItem('user_data');
+            let userEmail = 'test@example.com'; // Default for testing
+            let userName = 'Test User'; // Default for testing
+            let userId = 1; // Default for testing
+            
+            if (storedUser) {
+                try {
+                    const userData = JSON.parse(storedUser);
+                    userEmail = userData.email || userEmail;
+                    userName = userData.name || userData.username || userName;
+                    userId = userData.id || userData.user_id || userId;
+                } catch (e) {
+                    console.warn('Failed to parse stored user data:', e);
+                }
+            }
+            
+            // Create a proper test session using the API
+            const sessionData = {
+                test_id: testId,
+                user_id: userId,
+                user_email: userEmail,
+                user_name: userName,
+                start_time: new Date().toISOString()
+            };
+            
+            console.log('Creating test session with data:', sessionData);
+            const response = await startTestSession(sessionData);
+            
+            if (response.error) {
+                console.error('Failed to create test session:', response.message);
+                setError('Failed to start proctoring session: ' + response.message);
+                return null;
+            }
+            
+            const sessionId = response.session_id || response.id;
+            console.log('Test session created with ID:', sessionId);
+            setSessionId(sessionId);
+            return sessionId;
         } catch (err) {
             console.error('Failed to initialize proctoring session:', err);
             setError('Failed to start proctoring session');
@@ -105,6 +213,10 @@ export const ScreenMonitorProvider = ({ children }) => {
 
             if (!isCurrentlyFullscreen && isTestActive) {
                 handleWarning('fullscreen_exit');
+                // Log fullscreen exit violation
+                if (violationLogger) {
+                    violationLogger.logFullscreenExit();
+                }
                 
                 // Only retry if we're not already trying
                 if (!fullscreenRetryRef.current) {
@@ -155,7 +267,15 @@ export const ScreenMonitorProvider = ({ children }) => {
     useEffect(() => {
         const handleVisibilityChange = () => {
             if (document.hidden && isTestActive) {
+                console.log('Tab switch detected, session ID:', sessionId, 'isLogging:', violationLogger?.isLogging);
                 handleWarning('tab_switch');
+                // Log tab switch violation
+                if (violationLogger) {
+                    console.log('Calling violationLogger.logTabSwitch()');
+                    violationLogger.logTabSwitch();
+                } else {
+                    console.log('violationLogger is not available');
+                }
                 // Force fullscreen when tab becomes visible again
                 if (!document.hidden) {
                     const element = document.documentElement;
@@ -169,13 +289,17 @@ export const ScreenMonitorProvider = ({ children }) => {
 
         document.addEventListener('visibilitychange', handleVisibilityChange);
         return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-    }, [isTestActive]);
+    }, [isTestActive]); // Removed violationLogger from dependencies
 
     // Handle window blur
     useEffect(() => {
         const handleBlur = () => {
             if (isTestActive) {
                 handleWarning('window_blur');
+                // Log window blur violation
+                if (violationLogger) {
+                    violationLogger.logWindowBlur();
+                }
                 // Force fullscreen when window regains focus
                 window.addEventListener('focus', () => {
                     if (isTestActive && !getFullscreenElement()) {
@@ -191,7 +315,7 @@ export const ScreenMonitorProvider = ({ children }) => {
 
         window.addEventListener('blur', handleBlur);
         return () => window.removeEventListener('blur', handleBlur);
-    }, [isTestActive]);
+    }, [isTestActive]); // Removed violationLogger from dependencies
 
     // Record violation to API
     const recordViolationToAPI = async (violationType) => {

@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import FaceAuth from './FaceAuth';
 import { FaMicrophone, FaMicrophoneSlash, FaCamera } from 'react-icons/fa';
 import { Box, Typography, LinearProgress, Button } from '@mui/material';
+import { useEnhancedViolationLogger } from '../hooks/useEnhancedViolationLogger';
 
 const PrerequisitesCheck = ({ onComplete }) => {
     const navigate = useNavigate();
@@ -18,6 +19,50 @@ const PrerequisitesCheck = ({ onComplete }) => {
 
     // Extract session data from location state
     const sessionData = location.state || {};
+    
+    // Initialize violation logger
+    const violationLogger = useEnhancedViolationLogger(sessionData.sessionId);
+
+    useEffect(() => {
+        // Start violation logging if we have a session ID
+        if (sessionData.sessionId) {
+            violationLogger.startLogging();
+        }
+        return () => {
+            violationLogger.stopLogging();
+        };
+    }, [sessionData.sessionId]);
+
+    // Detect browser compatibility and log violation if needed
+    const getBrowserInfo = () => {
+        const userAgent = navigator.userAgent;
+        let browserName = 'Unknown';
+        let browserVersion = 'Unknown';
+        
+        if (userAgent.includes('Chrome')) {
+            browserName = 'Chrome';
+            const match = userAgent.match(/Chrome\/(\d+)/);
+            browserVersion = match ? match[1] : 'Unknown';
+        } else if (userAgent.includes('Firefox')) {
+            browserName = 'Firefox';
+            const match = userAgent.match(/Firefox\/(\d+)/);
+            browserVersion = match ? match[1] : 'Unknown';
+        } else if (userAgent.includes('Safari') && !userAgent.includes('Chrome')) {
+            browserName = 'Safari';
+            const match = userAgent.match(/Version\/(\d+)/);
+            browserVersion = match ? match[1] : 'Unknown';
+        } else if (userAgent.includes('Edge')) {
+            browserName = 'Edge';
+            const match = userAgent.match(/Edge\/(\d+)/);
+            browserVersion = match ? match[1] : 'Unknown';
+        }
+        
+        return {
+            name: browserName,
+            version: browserVersion,
+            userAgent: userAgent
+        };
+    };
 
     useEffect(() => {
         checkSystemRequirements();
@@ -49,11 +94,19 @@ const PrerequisitesCheck = ({ onComplete }) => {
         setError('');
         
         try {
+            // Get browser information
+            const browserInfo = getBrowserInfo();
+            
             // Check browser compatibility first
             const isModernBrowser = 'mediaDevices' in navigator && 'getUserMedia' in navigator.mediaDevices;
-            setSystemChecks(prev => ({ ...prev, browser: isModernBrowser }));
+            const supportedBrowsers = ['Chrome', 'Firefox', 'Edge'];
+            const isSupportedBrowser = supportedBrowsers.includes(browserInfo.name);
+            
+            setSystemChecks(prev => ({ ...prev, browser: isModernBrowser && isSupportedBrowser }));
 
-            if (!isModernBrowser) {
+            // Log browser compatibility violation if needed
+            if (!isModernBrowser || !isSupportedBrowser) {
+                await violationLogger.logBrowserCompatibility(browserInfo);
                 setError('Your browser does not support the required features. Please use a modern browser like Chrome, Firefox, or Edge.');
                 setIsChecking(false);
                 return;
@@ -67,6 +120,8 @@ const PrerequisitesCheck = ({ onComplete }) => {
             } catch (cameraErr) {
                 console.log('Camera permission not granted:', cameraErr.message);
                 setSystemChecks(prev => ({ ...prev, camera: false }));
+                // Log camera permission violation
+                await violationLogger.logCameraPermission(cameraErr.message);
             }
 
             // Check microphone
@@ -77,6 +132,8 @@ const PrerequisitesCheck = ({ onComplete }) => {
             } catch (microphoneErr) {
                 console.log('Microphone permission not granted:', microphoneErr.message);
                 setSystemChecks(prev => ({ ...prev, microphone: false }));
+                // Log microphone permission violation
+                await violationLogger.logMicrophonePermission(microphoneErr.message);
             }
         } catch (err) {
             console.error('System check error:', err);

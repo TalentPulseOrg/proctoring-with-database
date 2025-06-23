@@ -2,6 +2,8 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useFaceDetection } from '../hooks/useFaceDetection';
 import { useBrowserControls } from '../contexts/BrowserControlsContext';
 import { useViolationLogger } from '../hooks/useViolationLogger';
+import { useEnhancedViolationLogger } from '../hooks/useEnhancedViolationLogger';
+import { useGazeTracking } from '../hooks/useGazeTracking';
 import { startScreenshotService, stopScreenshotService } from '../api/api';
 import { Toast } from './Toast';
 import ProctoringStatus from './ProctoringStatus';
@@ -9,6 +11,7 @@ import { FaVideo, FaMicrophone, FaEye } from 'react-icons/fa';
 import { Box, Typography } from '@mui/material';
 import { useWarning } from '../contexts/WarningContext';
 import useAudioMonitor from '../hooks/useAudioMonitor';
+import useEnhancedAudioMonitor from '../hooks/useEnhancedAudioMonitor';
 import AudioAlert from './AudioAlert';
 
 export default function ProctoringSuite({ sessionId, testId, isTestActive }) {
@@ -16,6 +19,8 @@ export default function ProctoringSuite({ sessionId, testId, isTestActive }) {
   const [toasts, setToasts] = useState([]);
   const [isScreenshotServiceActive, setIsScreenshotServiceActive] = useState(false);
   const [isFaceDetectionActive, setIsFaceDetectionActive] = useState(false);
+  const [isGazeTrackingActive, setIsGazeTrackingActive] = useState(false);
+  const [faceCount, setFaceCount] = useState(0);
   const [isFullscreenEnforced, setIsFullscreenEnforced] = useState(false);
   const [isKeyboardShortcutsDisabled, setIsKeyboardShortcutsDisabled] = useState(false);
   const [isTabSwitchingBlocked, setIsTabSwitchingBlocked] = useState(false);
@@ -31,15 +36,17 @@ export default function ProctoringSuite({ sessionId, testId, isTestActive }) {
 
   // Hooks for proctoring features
   const faceDetection = useFaceDetection();
+  const gazeTracking = useGazeTracking();
   const browserControls = useBrowserControls();
   const enterFullScreen = browserControls?.enterFullScreen;
   const isFullScreen = browserControls?.isFullScreen;
   const setTestSession = browserControls?.setTestSession;
   const { logViolation } = useViolationLogger();
+  const enhancedLogger = useEnhancedViolationLogger(sessionId);
   const { handleViolation } = useWarning();
 
-  // Audio monitoring
-  const { alert: audioAlert, monitoring: isAudioActive, sessionEvents: audioSessionEvents } = useAudioMonitor(isTestActive);
+  // Enhanced audio monitoring with violation logging
+  const { alert: audioAlert, monitoring: isAudioActive, sessionEvents: audioSessionEvents } = useEnhancedAudioMonitor(sessionId, isTestActive);
   const isAudioSuspicious = !!audioAlert;
 
   // Add toast notification
@@ -75,39 +82,50 @@ export default function ProctoringSuite({ sessionId, testId, isTestActive }) {
         setIsScreenshotServiceActive(true);
       }
 
-      // Start face detection
-      if (!isFaceDetectionActive && videoRef.current) {
-        faceDetection.startDetection(videoRef.current, sessionId, (faces) => {
-          setFaceCount(faces.length);
-          if (faces.length > 1) {
-            setIsMultipleFacesDetected(true);
-            addToast('Multiple faces detected', 'warning');
-            handleViolation('multiple_faces');
-          } else if (faces.length === 0) {
-            setIsNoFaceDetected(true);
-            addToast('No face detected', 'warning');
-            handleViolation('no_face');
-          } else {
-            setIsMultipleFacesDetected(false);
-            setIsNoFaceDetected(false);
-          }
-        });
-        setIsFaceDetectionActive(true);
-      }
+        // Start face detection
+        if (!isFaceDetectionActive && videoRef.current) {
+          faceDetection.startDetection(videoRef.current, sessionId, (faces) => {
+            setFaceCount(faces.length);
+            if (faces.length > 1) {
+              setIsMultipleFacesDetected(true);
+              addToast('Multiple faces detected', 'warning');
+              handleViolation('multiple_faces');
+              // Enhanced logging
+              if (enhancedLogger) {
+                enhancedLogger.logMultipleFaces(faces.length);
+              }
+            } else if (faces.length === 0) {
+              setIsNoFaceDetected(true);
+              addToast('No face detected', 'warning');
+              handleViolation('no_face');
+            } else {
+              setIsMultipleFacesDetected(false);
+              setIsNoFaceDetected(false);
+            }
+          });
+          setIsFaceDetectionActive(true);
+        }
 
-      // Start gaze tracking
-      if (!isGazeTrackingActive && videoRef.current) {
-        gazeTracking.startTracking(videoRef.current, (direction) => {
-          if (direction === 'away') {
-            setIsGazeAway(true);
-            addToast('Looking away from screen', 'warning');
-            handleViolation('gaze_away');
-          } else {
-            setIsGazeAway(false);
-          }
-        });
-        setIsGazeTrackingActive(true);
-      }
+        // Start gaze tracking
+        if (!isGazeTrackingActive && videoRef.current) {
+          gazeTracking.startTracking(videoRef.current, (direction) => {
+            if (direction === 'away') {
+              setIsGazeAway(true);
+              addToast('Looking away from screen', 'warning');
+              handleViolation('gaze_away');
+              // Enhanced logging
+              if (enhancedLogger) {
+                enhancedLogger.logGazeAway({
+                  direction: direction,
+                  duration: 3 // Default duration in seconds
+                });
+              }
+            } else {
+              setIsGazeAway(false);
+            }
+          });
+          setIsGazeTrackingActive(true);
+        }
     } catch (error) {
       console.error('Error starting monitoring services:', error);
       addToast('Failed to start some monitoring services', 'error');

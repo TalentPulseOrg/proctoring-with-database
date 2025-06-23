@@ -3,6 +3,7 @@ import axios from 'axios';
 import { analyzeLighting } from '../utils/lightingAnalyzer';
 import * as faceapi from 'face-api.js';
 import { useViolationLogger } from '../hooks/useViolationLogger';
+import { useEnhancedViolationLogger } from '../hooks/useEnhancedViolationLogger';
 import { API_BASE_URL } from '../config';
 
 const CALIBRATION_STEPS = [
@@ -23,17 +24,29 @@ const WebcamMonitor = ({ testId, sessionId }) => {
   const [lastLightingCheck, setLastLightingCheck] = useState(0);
   const [showLightingToast, setShowLightingToast] = useState(false);
   const { logViolation, isLogging, startLogging, stopLogging } = useViolationLogger(sessionId, testId);
+  const enhancedLogger = useEnhancedViolationLogger(sessionId);
   const lastViolationRef = useRef(false);
+  const lastLightingViolationRef = useRef(0);
+  const lastMultipleFacesViolationRef = useRef(0);
   const [calibrated, setCalibrated] = useState(false);
 
   useEffect(() => {
     if (sessionId && !isLogging) {
       startLogging();
     }
+    
+    // Also start enhanced logging
+    if (sessionId && enhancedLogger) {
+      enhancedLogger.startLogging();
+    }
+    
     return () => {
       stopLogging();
+      if (enhancedLogger) {
+        enhancedLogger.stopLogging();
+      }
     };
-  }, [sessionId]);
+  }, [sessionId, enhancedLogger]);
 
   useEffect(() => {
     if (isViolation && !lastViolationRef.current) {
@@ -126,9 +139,22 @@ const WebcamMonitor = ({ testId, sessionId }) => {
       setLightingStatus(lightingAnalysis);
       setLastLightingCheck(Date.now());
 
-      // Show toast if lighting is not adequate
+      // Show toast if lighting is not adequate and log violation
       if (!lightingAnalysis.is_adequate) {
         setShowLightingToast(true);
+        
+        // Log lighting violation with cooldown (once every 15 seconds)
+        const now = Date.now();
+        if (now - lastLightingViolationRef.current > 15000) {
+          if (enhancedLogger) {
+            enhancedLogger.logLightingIssue({
+              level: lightingAnalysis.brightness_level,
+              status: lightingAnalysis.status
+            });
+            lastLightingViolationRef.current = now;
+          }
+        }
+        
         // Clear any existing timeout
         if (toastTimeout) {
           clearTimeout(toastTimeout);
@@ -184,7 +210,19 @@ const WebcamMonitor = ({ testId, sessionId }) => {
             faceCount: response.data.face_count
           });
 
-          // Log the suspicious activity
+          // Log multiple faces violation with cooldown (once every 5 seconds)
+          const now = Date.now();
+          if (now - lastMultipleFacesViolationRef.current > 5000) {
+            if (enhancedLogger) {
+              enhancedLogger.logMultipleFaces(
+                response.data.face_count,
+                response.data.saved_image_path
+              );
+              lastMultipleFacesViolationRef.current = now;
+            }
+          }
+
+          // Log the suspicious activity (legacy)
           try {
             await axios.post(`${API_BASE_URL}/monitoring/log-event`, {
               test_id: testId,
