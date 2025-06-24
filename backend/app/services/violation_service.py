@@ -6,6 +6,7 @@ from datetime import datetime
 import logging
 import os
 from typing import Optional, Dict, Any
+import pytz
 
 logger = logging.getLogger(__name__)
 
@@ -75,12 +76,13 @@ class ViolationService:
                 return None
             
             # Prepare violation data
+            IST = pytz.timezone('Asia/Kolkata')
             violation_data = ViolationCreate(
                 session_id=session_id,
                 violation_type=violation_type,
                 details=details or {},
                 filepath=filepath,
-                timestamp=timestamp or datetime.utcnow()
+                timestamp=timestamp or datetime.now(IST)
             )
             
             # Create violation record

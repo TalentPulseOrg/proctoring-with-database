@@ -642,6 +642,7 @@ export const ScreenMonitorProvider = ({ children }) => {
         error,
         warningCount,
         isTestActive,
+        setIsTestActive,
         showWarning,
         warningMessage,
         sessionId,

@@ -25,6 +25,7 @@ import { Box } from "@mui/material";
 import { WarningProvider } from "../contexts/WarningContext";
 import useAudioMonitor from '../hooks/useAudioMonitor';
 import { API_BASE_URL } from '../config';
+import { useViolationLogger } from '../hooks/useViolationLogger';
 
 export default function TestInterface() {
   const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -59,7 +60,7 @@ export default function TestInterface() {
   const navigate = useNavigate();
   const { sessionId: urlSessionId } = useParams();
   const location = useLocation();
-  const { startMonitoring, stopMonitoring, requestFullscreen } =
+  const { startMonitoring, stopMonitoring, requestFullscreen, setIsTestActive } =
     useScreenMonitor();
   const {
     submitTestWithRetry,
@@ -89,6 +90,29 @@ export default function TestInterface() {
   const { alert: audioAlert, monitoring: isAudioActive, sessionEvents: audioSessionEvents } = useAudioMonitor(isTestStarted);
   const [audioToast, setAudioToast] = useState(null);
   const [audioMeter, setAudioMeter] = useState({ volume: 0, label: '---', confidence: 0 });
+
+  // Violation logger for fullscreen exit
+  const { logViolation, isLogging, startLogging, stopLogging } = useViolationLogger(sessionId, testData?.testId);
+  const lastFullscreenState = useRef(true);
+
+  // Start/stop violation logging with test
+  useEffect(() => {
+    if (isTestStarted && sessionId && testData?.testId) {
+      startLogging();
+    } else {
+      stopLogging();
+    }
+  }, [isTestStarted, sessionId, testData?.testId, startLogging, stopLogging]);
+
+  // Log violation when user exits fullscreen during test
+  useEffect(() => {
+    if (!isTestStarted || !isLogging) return;
+    if (lastFullscreenState.current && !isFullScreen) {
+      // User just exited fullscreen
+      logViolation('fullscreen_exit', { message: 'User exited fullscreen during test' });
+    }
+    lastFullscreenState.current = isFullScreen;
+  }, [isFullScreen, isTestStarted, isLogging, logViolation]);
 
   // Ensure sessionId is always an integer
   const setSessionIdSafe = (id) => {
@@ -450,7 +474,6 @@ export default function TestInterface() {
       if (isFullscreenRequested) return;
       setIsFullscreenRequested(true);
       setError(null);
-
       // Start monitoring which will handle fullscreen
       const monitoringStarted = await startMonitoring(testData.testId);
       if (!monitoringStarted) {
@@ -458,13 +481,9 @@ export default function TestInterface() {
         setIsFullscreenRequested(false);
         return;
       }
-
       setShowFullscreenPrompt(false);
-
       // Use existing session ID instead of creating a new one
       let actualSessionId = sessionId;
-      
-      // If we don't have a session ID, we need to get it from the location state or URL
       if (!actualSessionId) {
         if (location.state?.sessionId) {
           actualSessionId = location.state.sessionId;
@@ -476,15 +495,10 @@ export default function TestInterface() {
           throw new Error("No session ID available. Please restart the test registration process.");
         }
       }
-
-      console.log("Using existing session ID:", actualSessionId);
-
       // Initialize video and tracking first
       if (videoRef.current) {
         try {
-          const stream = await navigator.mediaDevices.getUserMedia({
-            video: true,
-          });
+          const stream = await navigator.mediaDevices.getUserMedia({ video: true });
           videoRef.current.srcObject = stream;
           await new Promise((resolve) => {
             if (videoRef.current) {
@@ -495,18 +509,14 @@ export default function TestInterface() {
           console.error("Error initializing video:", error);
         }
       }
-
-      // Start screenshot service
-      await startScreenshotService({
-        session_id: actualSessionId,
-        test_id: testData.testId,
-      });
+      await startScreenshotService({ session_id: actualSessionId, test_id: testData.testId });
       setIsScreenshotServiceActive(true);
-
-      // Initialize warning system and start test
       startWarningSystem();
       setTimeLeft(testData.duration * 60);
       setIsTestStarted(true);
+      setIsTestActive(true); // <-- Start logging for tab/blur/shortcut
+      setError(null);
+      setIsFullscreenRequested(false);
     } catch (error) {
       console.error("Error starting test:", error);
       setError(error.message);
@@ -575,6 +585,7 @@ export default function TestInterface() {
 
       // Set test as ended
       setIsTestStarted(false);
+      setIsTestActive(false); // <-- Stop logging for tab/blur/shortcut
 
       // Navigate to results with complete data
       navigate("/test-results", {
