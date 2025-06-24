@@ -291,27 +291,27 @@ monitoring_logs/
 └── ...
 ```
 
-Camera Permission Check => done
+1. Camera Permission Check => done
 Log as suspicious if the user denies or revokes camera access at any point during the test.
-Microphone Permission Check
+2. Microphone Permission Check => done
 Log as suspicious if the user denies or revokes microphone access at any point during the test.
-Browser Compatibility Check
+3. Browser Compatibility Check => done
 Log as suspicious if the user is not using a supported browser (e.g., not Chrome, Firefox, or Edge).
-Tab Switching Control => done
+4. Tab Switching Control => done
 Log as suspicious if the user switches away from the test tab (i.e., the tab becomes inactive) at any time during the test.
-Window Blur Control => done
+5. Window Blur Control => done
 Log as suspicious if the test window loses focus (e.g., the user clicks outside the window or minimizes it).
-Full Screen Enforcement
+6. Full Screen Enforcement => 
 Log as suspicious if the user exits full screen mode during the test.
-Shortcut Keys Control => done
+7. Shortcut Keys Control => done
 Log as suspicious if the user attempts to use restricted keyboard shortcuts (e.g., Alt+Tab, Ctrl+C, Ctrl+V, Print Screen, etc.).
-Lighting Analysis
+8. Lighting Analysis
 Log as suspicious if lighting conditions are too dark or change drastically (e.g., sudden darkness or brightness).
-Gaze Tracking Analysis
+9. Gaze Tracking Analysis
 Log as suspicious if the user’s gaze is away from the screen for a significant period (e.g., looking away for more than 2–3 seconds repeatedly).
-Multiple Face Detection
+10. Multiple Face Detection
 Log as suspicious if more than one face is detected in the camera frame at any time.
-Audio Monitoring
+11. Audio Monitoring
 Log as suspicious if unusual or loud background noises are detected (e.g., voices, conversations, or other people speaking).
 
 ---

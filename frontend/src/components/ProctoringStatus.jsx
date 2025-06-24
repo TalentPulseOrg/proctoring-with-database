@@ -23,16 +23,20 @@ export default function ProctoringStatus({
   isMultipleFacesDetected,
   isNoFaceDetected,
   isGazeAway,
-  isContinuousNoise
+  isContinuousNoise,
+  hasCameraPermission = true,
+  isCameraPermissionViolated = false,
+  hasMicrophonePermission = true,
+  isMicrophonePermissionViolated = false
 }) {
   return (
     <div className="space-y-4">
       {/* Proctoring Status Grid */}
       <div className="grid grid-cols-2 gap-2">
         <StatusIndicator 
-          active={isFaceDetectionActive} 
+          active={isFaceDetectionActive && hasCameraPermission} 
           label="Face Detection" 
-          warning={isMultipleFacesDetected || isNoFaceDetected}
+          warning={isMultipleFacesDetected || isNoFaceDetected || isCameraPermissionViolated}
         />
         <StatusIndicator 
           active={isGazeTrackingActive} 
@@ -79,10 +83,12 @@ export default function ProctoringStatus({
 
       {/* Active Violations Section */}
       {(isMultipleFacesDetected || isNoFaceDetected || isGazeAway || 
-        isContinuousNoise) && (
+        isContinuousNoise || isCameraPermissionViolated || isMicrophonePermissionViolated) && (
         <div className="mt-4 p-3 bg-red-50 rounded-md border border-red-200">
           <h4 className="text-sm font-semibold mb-2 text-red-700">Active Violations</h4>
           <ul className="space-y-1">
+            {isCameraPermissionViolated && <li className="text-sm text-red-600">• Camera access revoked</li>}
+            {isMicrophonePermissionViolated && <li className="text-sm text-red-600">• Microphone access revoked</li>}
             {isMultipleFacesDetected && <li className="text-sm text-red-600">• More than one face detected</li>}
             {isNoFaceDetected && <li className="text-sm text-red-600">• No face detected</li>}
             {isGazeAway && <li className="text-sm text-red-600">• Looking away from screen</li>}

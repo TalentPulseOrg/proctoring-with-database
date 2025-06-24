@@ -13,6 +13,10 @@ import { useWarning } from '../contexts/WarningContext';
 import useAudioMonitor from '../hooks/useAudioMonitor';
 import useEnhancedAudioMonitor from '../hooks/useEnhancedAudioMonitor';
 import AudioAlert from './AudioAlert';
+import useCameraPermissionMonitor from '../hooks/useCameraPermissionMonitor';
+import CameraPermissionWarning from './CameraPermissionWarning';
+import useMicrophonePermissionMonitor from '../hooks/useMicrophonePermissionMonitor';
+import MicrophonePermissionWarning from './MicrophonePermissionWarning';
 
 export default function ProctoringSuite({ sessionId, testId, isTestActive }) {
   const videoRef = useRef(null);
@@ -49,6 +53,27 @@ export default function ProctoringSuite({ sessionId, testId, isTestActive }) {
   const { alert: audioAlert, monitoring: isAudioActive, sessionEvents: audioSessionEvents } = useEnhancedAudioMonitor(sessionId, isTestActive);
   const isAudioSuspicious = !!audioAlert;
 
+  // Camera permission monitoring
+  const { 
+    hasCameraPermission, 
+    cameraStatus, 
+    recheckPermission,
+    isMonitoring: isCameraMonitoring
+  } = useCameraPermissionMonitor(sessionId, isTestActive);
+
+  // Microphone permission monitoring
+  const { 
+    hasMicrophonePermission, 
+    microphoneStatus, 
+    recheckPermission: recheckMicrophonePermission,
+    isMonitoring: isMicrophoneMonitoring
+  } = useMicrophonePermissionMonitor(sessionId, isTestActive);
+
+  // State for camera permission violations
+  const [isCameraPermissionViolated, setIsCameraPermissionViolated] = useState(false);
+  // State for microphone permission violations
+  const [isMicrophonePermissionViolated, setIsMicrophonePermissionViolated] = useState(false);
+
   // Add toast notification
   const addToast = useCallback((message, type = 'info') => {
     const id = Date.now();
@@ -69,6 +94,28 @@ export default function ProctoringSuite({ sessionId, testId, isTestActive }) {
       setTestSession(sessionId);
     }
   }, [sessionId, setTestSession]);
+
+  // Monitor camera permission status and show warnings
+  useEffect(() => {
+    if (!hasCameraPermission && cameraStatus === 'denied') {
+      setIsCameraPermissionViolated(true);
+      addToast('Camera access has been revoked. Please re-enable camera access to continue the test.', 'error');
+    } else if (hasCameraPermission && isCameraPermissionViolated) {
+      setIsCameraPermissionViolated(false);
+      addToast('Camera access restored', 'success');
+    }
+  }, [hasCameraPermission, cameraStatus, isCameraPermissionViolated, addToast]);
+
+  // Monitor microphone permission status and show warnings
+  useEffect(() => {
+    if (!hasMicrophonePermission && microphoneStatus === 'denied') {
+      setIsMicrophonePermissionViolated(true);
+      addToast('Microphone access has been revoked. Please re-enable microphone access to continue the test.', 'error');
+    } else if (hasMicrophonePermission && isMicrophonePermissionViolated) {
+      setIsMicrophonePermissionViolated(false);
+      addToast('Microphone access restored', 'success');
+    }
+  }, [hasMicrophonePermission, microphoneStatus, isMicrophonePermissionViolated, addToast]);
 
   // Remove the enforceFullscreen function and its usage
   const startAllServices = useCallback(async () => {
@@ -190,14 +237,14 @@ export default function ProctoringSuite({ sessionId, testId, isTestActive }) {
       {
         icon: <FaVideo />,
         label: 'Webcam',
-        isActive: isFaceDetectionActive,
-        isSuspicious: false
+        isActive: isFaceDetectionActive && hasCameraPermission,
+        isSuspicious: isCameraPermissionViolated
       },
       {
         icon: <FaMicrophone />,
         label: 'Audio',
-        isActive: isAudioActive,
-        isSuspicious: isAudioSuspicious
+        isActive: isAudioActive && hasMicrophonePermission,
+        isSuspicious: isAudioSuspicious || isMicrophonePermissionViolated
       },
       {
         icon: <FaEye />,
@@ -227,6 +274,22 @@ export default function ProctoringSuite({ sessionId, testId, isTestActive }) {
 
   return (
     <Box sx={{ position: 'relative' }}>
+      {/* Camera Permission Warning Modal */}
+      <CameraPermissionWarning
+        isVisible={isCameraPermissionViolated && isTestActive}
+        onRetryPermission={recheckPermission}
+        cameraStatus={cameraStatus}
+        isLoading={false}
+      />
+
+      {/* Microphone Permission Warning Modal */}
+      <MicrophonePermissionWarning
+        isVisible={isMicrophonePermissionViolated && isTestActive && !isCameraPermissionViolated}
+        onRetryPermission={recheckMicrophonePermission}
+        microphoneStatus={microphoneStatus}
+        isLoading={false}
+      />
+
       {/* Toast notifications */}
       <div className="fixed top-4 right-4 z-50 space-y-2">
         {toasts.map(toast => (
@@ -267,6 +330,10 @@ export default function ProctoringSuite({ sessionId, testId, isTestActive }) {
         isNoFaceDetected={isNoFaceDetected}
         isGazeAway={isGazeAway}
         isContinuousNoise={isContinuousNoise}
+        hasCameraPermission={hasCameraPermission}
+        isCameraPermissionViolated={isCameraPermissionViolated}
+        hasMicrophonePermission={hasMicrophonePermission}
+        isMicrophonePermissionViolated={isMicrophonePermissionViolated}
       />
 
       <Box

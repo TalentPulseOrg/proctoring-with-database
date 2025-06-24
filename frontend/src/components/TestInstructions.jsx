@@ -3,6 +3,10 @@ import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { getTestById } from '../api/api';
 import { Box, Typography, List, ListItem, ListItemIcon, ListItemText } from '@mui/material';
 import { FaMicrophone } from 'react-icons/fa';
+import useCameraPermissionMonitor from '../hooks/useCameraPermissionMonitor';
+import CameraPermissionWarning from './CameraPermissionWarning';
+import useMicrophonePermissionMonitor from '../hooks/useMicrophonePermissionMonitor';
+import MicrophonePermissionWarning from './MicrophonePermissionWarning';
 
 const TestInstructions = ({ onStartTest }) => {
   const [testDetails, setTestDetails] = useState(null);
@@ -11,6 +15,23 @@ const TestInstructions = ({ onStartTest }) => {
   const location = useLocation();
   const { testId } = useParams();
   const navigate = useNavigate();
+
+  // Get session ID from location state
+  const sessionId = location.state?.sessionId;
+
+  // Monitor camera permission during instructions phase
+  const { 
+    hasCameraPermission, 
+    cameraStatus, 
+    recheckPermission 
+  } = useCameraPermissionMonitor(sessionId, true); // Active monitoring during instructions
+
+  // Monitor microphone permission during instructions phase
+  const { 
+    hasMicrophonePermission, 
+    microphoneStatus, 
+    recheckPermission: recheckMicrophonePermission 
+  } = useMicrophonePermissionMonitor(sessionId, true); // Active monitoring during instructions
 
   useEffect(() => {
     const fetchTestDetails = async () => {
@@ -103,6 +124,22 @@ const TestInstructions = ({ onStartTest }) => {
 
   return (
     <Box sx={{ maxWidth: 800, mx: 'auto', p: 4 }}>
+      {/* Camera Permission Warning */}
+      <CameraPermissionWarning
+        isVisible={!hasCameraPermission && cameraStatus === 'denied'}
+        onRetryPermission={recheckPermission}
+        cameraStatus={cameraStatus}
+        isLoading={false}
+      />
+
+      {/* Microphone Permission Warning */}
+      <MicrophonePermissionWarning
+        isVisible={!hasMicrophonePermission && microphoneStatus === 'denied' && hasCameraPermission}
+        onRetryPermission={recheckMicrophonePermission}
+        microphoneStatus={microphoneStatus}
+        isLoading={false}
+      />
+
       <h1 className="text-2xl font-bold mb-6">Test Instructions</h1>
       
       {testDetails && (
