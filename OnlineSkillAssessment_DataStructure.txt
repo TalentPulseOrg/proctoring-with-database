@@ -313,8 +313,7 @@ Log as suspicious if the user’s gaze is away from the screen for a significant
 Log as suspicious if more than one face is detected in the camera frame at any time.
 11. Audio Monitoring
 Log as suspicious if unusual or loud background noises are detected (e.g., voices, conversations, or other people speaking).
-
-12. permission enable log => ProctorPermissionLog
+12. permission enable log => ProctorPermissionLog => done
 
 ---
 
