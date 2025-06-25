@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { logCameraPermissionViolation } from '../api/api';
+import { logCameraPermission } from '../api/api';
 
 /**
  * Hook to monitor camera permissions during test session
  * Detects camera permission changes and logs violations
  */
-export const useCameraPermissionMonitor = (sessionId, isTestActive = false) => {
+export const useCameraPermissionMonitor = (sessionId, isTestActive = false, shouldLogPermissions = true) => {
     const [hasCameraPermission, setHasCameraPermission] = useState(true);
     const [cameraStatus, setCameraStatus] = useState('checking');
     const [stream, setStream] = useState(null);
@@ -34,6 +35,12 @@ export const useCameraPermissionMonitor = (sessionId, isTestActive = false) => {
             if (!lastPermissionState.current) {
                 violationLogged.current = false;
                 console.log('Camera permission restored');
+                
+                // Log permission restoration to proctorpermissionlog only if shouldLogPermissions is true
+                if (sessionId && shouldLogPermissions) {
+                    await logCameraPermission(sessionId, true);
+                    console.log('Camera permission restoration logged');
+                }
             }
             
             lastPermissionState.current = true;
@@ -49,6 +56,12 @@ export const useCameraPermissionMonitor = (sessionId, isTestActive = false) => {
                 // Log violation only if permission was previously granted and we haven't already logged
                 if (lastPermissionState.current && !violationLogged.current && sessionId) {
                     await logCameraPermissionViolation(sessionId, error.message);
+                    
+                    // Also log to proctorpermissionlog only if shouldLogPermissions is true
+                    if (shouldLogPermissions) {
+                        await logCameraPermission(sessionId, false, error.message);
+                    }
+                    
                     violationLogged.current = true;
                     console.log('Camera permission violation logged');
                 }
@@ -62,7 +75,7 @@ export const useCameraPermissionMonitor = (sessionId, isTestActive = false) => {
             lastPermissionState.current = false;
             return false;
         }
-    }, [sessionId]);
+    }, [sessionId, shouldLogPermissions]);
 
     // Start monitoring camera permissions
     const startMonitoring = useCallback(() => {

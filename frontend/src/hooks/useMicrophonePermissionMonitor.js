@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { logMicrophonePermissionViolation } from '../api/api';
+import { logMicrophonePermission } from '../api/api';
 
 /**
  * Hook to monitor microphone permissions during test session
  * Detects microphone permission changes and logs violations
  */
-export const useMicrophonePermissionMonitor = (sessionId, isTestActive = false) => {
+export const useMicrophonePermissionMonitor = (sessionId, isTestActive = false, shouldLogPermissions = true) => {
     const [hasMicrophonePermission, setHasMicrophonePermission] = useState(true);
     const [microphoneStatus, setMicrophoneStatus] = useState('checking');
     const [stream, setStream] = useState(null);
@@ -34,6 +35,12 @@ export const useMicrophonePermissionMonitor = (sessionId, isTestActive = false) 
             if (!lastPermissionState.current) {
                 violationLogged.current = false;
                 console.log('Microphone permission restored');
+                
+                // Log permission restoration to proctorpermissionlog only if shouldLogPermissions is true
+                if (sessionId && shouldLogPermissions) {
+                    await logMicrophonePermission(sessionId, true);
+                    console.log('Microphone permission restoration logged');
+                }
             }
             
             lastPermissionState.current = true;
@@ -49,6 +56,12 @@ export const useMicrophonePermissionMonitor = (sessionId, isTestActive = false) 
                 // Log violation only if permission was previously granted and we haven't already logged
                 if (lastPermissionState.current && !violationLogged.current && sessionId) {
                     await logMicrophonePermissionViolation(sessionId, error.message);
+                    
+                    // Also log to proctorpermissionlog only if shouldLogPermissions is true
+                    if (shouldLogPermissions) {
+                        await logMicrophonePermission(sessionId, false, error.message);
+                    }
+                    
                     violationLogged.current = true;
                     console.log('Microphone permission violation logged');
                 }
@@ -62,7 +75,7 @@ export const useMicrophonePermissionMonitor = (sessionId, isTestActive = false) 
             lastPermissionState.current = false;
             return false;
         }
-    }, [sessionId]);
+    }, [sessionId, shouldLogPermissions]);
 
     // Start monitoring microphone permissions
     const startMonitoring = useCallback(() => {

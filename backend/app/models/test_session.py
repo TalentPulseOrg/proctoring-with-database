@@ -25,6 +25,7 @@ class TestSession(Base):
     behavioral_anomalies = relationship("BehavioralAnomaly", back_populates="session", cascade="all, delete-orphan")
     user_responses = relationship("UserResponse", back_populates="session", cascade="all, delete-orphan")
     snapshot_captures = relationship("SnapshotCapture", back_populates="session", cascade="all, delete-orphan")
+    proctor_permission_logs = relationship("ProctorPermissionLog", back_populates="exam_session", cascade="all, delete-orphan")
 
     def __repr__(self):
         return f"<TestSession(id={self.id}, test_id={self.test_id}, user_id={self.user_id}, status={self.status})>" 

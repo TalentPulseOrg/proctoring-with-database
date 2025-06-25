@@ -1,10 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form, BackgroundTasks
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form, BackgroundTasks, Request
 from sqlalchemy.orm import Session
 from typing import Dict, Any, List, Optional
 import logging
 from ..database import get_db
 from ..services.proctoring_service import ProctoringService
 from ..services.violation_service import ViolationService
+from ..services.proctor_permission_service import ProctorPermissionService
 from ..schemas.violation import ViolationCreate, ViolationResponse
 from ..schemas.screen_capture import ScreenCaptureCreate, ScreenCaptureResponse
 from ..schemas.behavioral_anomaly import BehavioralAnomalyCreate, BehavioralAnomalyResponse
@@ -86,6 +87,13 @@ class ScreenshotServiceRequest(BaseModel):
 class ScreenshotRequest(BaseModel):
     test_id: int
     session_id: int
+
+class ProctorPermissionLog(BaseModel):
+    examSessionId: int
+    permissionType: str
+    granted: bool
+    deviceInfo: Optional[str] = None
+    errorMessage: Optional[str] = None
 
 @router.post("/violation", response_model=ViolationResponse)
 async def record_violation(violation: ViolationCreate, db: Session = Depends(get_db)):
@@ -438,3 +446,62 @@ async def test_violation_logging(db: Session = Depends(get_db)):
     except Exception as e:
         logger.error(f"Error in test violation logging: {str(e)}")
         return {"success": False, "message": f"Error: {str(e)}"}
+
+@router.post("/permissions/log")
+async def log_proctor_permission(request: Request, permission_log: ProctorPermissionLog, db: Session = Depends(get_db)):
+    """Log proctor permission entry"""
+    try:
+        # Get client IP address
+        client_ip = request.client.host
+        
+        # Get IP from headers (for proxy scenarios)
+        forwarded_for = request.headers.get("X-Forwarded-For")
+        real_ip = request.headers.get("X-Real-IP")
+        
+        ip_address = forwarded_for or real_ip or client_ip
+        
+        # Enhance device info with IP address
+        if permission_log.deviceInfo:
+            try:
+                # If deviceInfo is a string, try to parse it as JSON
+                if isinstance(permission_log.deviceInfo, str):
+                    import json
+                    device_info = json.loads(permission_log.deviceInfo)
+                else:
+                    device_info = permission_log.deviceInfo
+                
+                # Add IP address to device info
+                device_info["ipAddress"] = ip_address
+                permission_log.deviceInfo = json.dumps(device_info)
+            except Exception as e:
+                logger.warning(f"Could not enhance device info with IP: {str(e)}")
+                # Fallback: create basic device info with IP
+                permission_log.deviceInfo = json.dumps({
+                    "ipAddress": ip_address,
+                    "basicInfo": permission_log.deviceInfo
+                })
+        else:
+            # No device info provided, create basic one with IP
+            permission_log.deviceInfo = json.dumps({
+                "ipAddress": ip_address,
+                "basicInfo": "Web Browser - Permission Check"
+            })
+        
+        result = ProctorPermissionService.log_permission(db, permission_log)
+        if result:
+            return {"success": True, "message": "Permission logged successfully", "log_id": result.id}
+        else:
+            return {"success": False, "message": "Failed to log permission"}
+    except Exception as e:
+        logger.error(f"Error logging proctor permission: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/permissions/{session_id}")
+async def get_session_permissions(session_id: int, db: Session = Depends(get_db)):
+    """Get all permission logs for a session"""
+    try:
+        permissions = ProctorPermissionService.get_session_permissions(db, session_id)
+        return {"success": True, "permissions": permissions}
+    except Exception as e:
+        logger.error(f"Error getting session permissions: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))

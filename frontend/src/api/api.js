@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { API_BASE_URL } from '../config';
+import { collectDeviceInfoSync, collectDeviceInfo } from '../utils/deviceInfoCollector';
 
 // Create axios instance with default configuration
 const api = axios.create({
@@ -742,6 +743,46 @@ const testViolationLogging = async () => {
   }
 };
 
+// Proctor Permission Logging APIs
+const logProctorPermission = async (sessionId, permissionType, granted, deviceInfo = null, errorMessage = null) => {
+  try {
+    // If no device info provided, collect it automatically with location
+    if (!deviceInfo) {
+      deviceInfo = await collectDeviceInfo(true);
+    }
+    
+    const response = await api.post('/api/proctoring/permissions/log', {
+      examSessionId: sessionId,
+      permissionType: permissionType,
+      granted: granted,
+      deviceInfo: JSON.stringify(deviceInfo),
+      errorMessage: errorMessage
+    });
+    return response.data;
+  } catch (error) {
+    return handleApiError(error, 'Failed to log proctor permission');
+  }
+};
+
+const getSessionPermissions = async (sessionId) => {
+  try {
+    const response = await api.get(`/api/proctoring/permissions/${sessionId}`);
+    return response.data;
+  } catch (error) {
+    return handleApiError(error, 'Failed to get session permissions');
+  }
+};
+
+const logCameraPermission = async (sessionId, granted, errorMessage = null) => {
+  const deviceInfo = await collectDeviceInfo(true);
+  return logProctorPermission(sessionId, 'camera', granted, deviceInfo, errorMessage);
+};
+
+const logMicrophonePermission = async (sessionId, granted, errorMessage = null) => {
+  const deviceInfo = await collectDeviceInfo(true);
+  return logProctorPermission(sessionId, 'microphone', granted, deviceInfo, errorMessage);
+};
+
 export {
   fetchHealthCheck,
   uploadIdPhoto,
@@ -789,7 +830,12 @@ export {
   logMultipleFacesViolation,
   logAudioSuspiciousViolation,
   getSessionViolationsSummary,
-  testViolationLogging
+  testViolationLogging,
+  // Proctor permission logging
+  logProctorPermission,
+  getSessionPermissions,
+  logCameraPermission,
+  logMicrophonePermission
 };
 
 export default api;

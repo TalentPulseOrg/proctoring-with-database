@@ -24,14 +24,14 @@ const TestInstructions = ({ onStartTest }) => {
     hasCameraPermission, 
     cameraStatus, 
     recheckPermission 
-  } = useCameraPermissionMonitor(sessionId, true); // Active monitoring during instructions
+  } = useCameraPermissionMonitor(sessionId, true, false); // Disable permission logging during instructions
 
   // Monitor microphone permission during instructions phase
   const { 
     hasMicrophonePermission, 
     microphoneStatus, 
     recheckPermission: recheckMicrophonePermission 
-  } = useMicrophonePermissionMonitor(sessionId, true); // Active monitoring during instructions
+  } = useMicrophonePermissionMonitor(sessionId, true, false); // Disable permission logging during instructions
 
   useEffect(() => {
     const fetchTestDetails = async () => {

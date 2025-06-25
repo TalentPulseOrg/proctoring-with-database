@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import FaceAuth from './FaceAuth';
 import { Toast, ToastContainer } from './Toast';
@@ -6,6 +6,7 @@ import { FaMicrophone, FaMicrophoneSlash, FaCamera, FaExclamationTriangle, FaChe
 import { Box, Typography, LinearProgress, Button, Alert, AlertTitle } from '@mui/material';
 import { useEnhancedViolationLogger } from '../hooks/useEnhancedViolationLogger';
 import { getBrowserCompatibilityReport, getBrowserCompatibilityMessage } from '../utils/browserDetection';
+import { logCameraPermission, logMicrophonePermission } from '../api/api';
 
 const PrerequisitesCheck = ({ onComplete }) => {
     const navigate = useNavigate();
@@ -20,6 +21,12 @@ const PrerequisitesCheck = ({ onComplete }) => {
     const [browserCompatibility, setBrowserCompatibility] = useState(null);
     const [browserMessage, setBrowserMessage] = useState(null);
     const [toasts, setToasts] = useState([]);
+    
+    // Flag to track if permissions have been logged to prevent duplicates
+    const permissionsLogged = useRef({
+        camera: false,
+        microphone: false
+    });
 
     // Extract session data from location state
     const sessionData = location.state || {};
@@ -95,6 +102,12 @@ const PrerequisitesCheck = ({ onComplete }) => {
         setIsChecking(true);
         setError('');
         
+        // Reset permission logging flags for this check
+        permissionsLogged.current = {
+            camera: false,
+            microphone: false
+        };
+        
         try {
             // Perform comprehensive browser compatibility check
             const browserReport = performBrowserCompatibilityCheck();
@@ -119,10 +132,25 @@ const PrerequisitesCheck = ({ onComplete }) => {
                 const cameraStream = await navigator.mediaDevices.getUserMedia({ video: true });
                 cameraStream.getTracks().forEach(track => track.stop());
                 setSystemChecks(prev => ({ ...prev, camera: true }));
+                
+                // Log successful camera permission only once
+                if (sessionData.sessionId && !permissionsLogged.current.camera) {
+                    await logCameraPermission(sessionData.sessionId, true);
+                    permissionsLogged.current.camera = true;
+                    console.log('Camera permission granted and logged');
+                }
             } catch (cameraErr) {
                 console.log('Camera permission not granted:', cameraErr.message);
                 setSystemChecks(prev => ({ ...prev, camera: false }));
-                // Log camera permission violation
+                
+                // Log camera permission denial only once
+                if (sessionData.sessionId && !permissionsLogged.current.camera) {
+                    await logCameraPermission(sessionData.sessionId, false, cameraErr.message);
+                    permissionsLogged.current.camera = true;
+                    console.log('Camera permission denied and logged');
+                }
+                
+                // Also log violation for backward compatibility
                 await violationLogger.logCameraPermission(cameraErr.message);
             }
 
@@ -131,10 +159,25 @@ const PrerequisitesCheck = ({ onComplete }) => {
                 const microphoneStream = await navigator.mediaDevices.getUserMedia({ audio: true });
                 microphoneStream.getTracks().forEach(track => track.stop());
                 setSystemChecks(prev => ({ ...prev, microphone: true }));
+                
+                // Log successful microphone permission only once
+                if (sessionData.sessionId && !permissionsLogged.current.microphone) {
+                    await logMicrophonePermission(sessionData.sessionId, true);
+                    permissionsLogged.current.microphone = true;
+                    console.log('Microphone permission granted and logged');
+                }
             } catch (microphoneErr) {
                 console.log('Microphone permission not granted:', microphoneErr.message);
                 setSystemChecks(prev => ({ ...prev, microphone: false }));
-                // Log microphone permission violation
+                
+                // Log microphone permission denial only once
+                if (sessionData.sessionId && !permissionsLogged.current.microphone) {
+                    await logMicrophonePermission(sessionData.sessionId, false, microphoneErr.message);
+                    permissionsLogged.current.microphone = true;
+                    console.log('Microphone permission denied and logged');
+                }
+                
+                // Also log violation for backward compatibility
                 await violationLogger.logMicrophonePermission(microphoneErr.message);
             }
         } catch (err) {

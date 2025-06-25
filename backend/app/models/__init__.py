@@ -20,6 +20,7 @@ from app.models.violation import Violation
 from app.models.screen_capture import ScreenCapture
 from app.models.behavioral_anomaly import BehavioralAnomaly
 from app.models.snapshot_capture import SnapshotCapture
+from app.models.proctor_permission_log import ProctorPermissionLog
 
 # Models with foreign keys to multiple tables
 from app.models.user_response import UserResponse
@@ -36,5 +37,6 @@ __all__ = [
     'ScreenCapture',
     'SnapshotCapture',
     'BehavioralAnomaly',
+    'ProctorPermissionLog',
     'UserResponse'
 ] 
