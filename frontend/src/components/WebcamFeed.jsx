@@ -232,7 +232,7 @@ const WebcamFeed = ({ sessionId, userId, isActive = true }) => {
           right: '0',
           zIndex: 10
         }}>
-          <FaceDetectionStatus faceCount={faceCount} isDetecting={isDetecting} />
+          <FaceDetectionStatus faceCount={faceCount} isDetecting={isDetecting} sessionId={sessionId} />
         </div>
         
         {/* Lighting Status Display */}

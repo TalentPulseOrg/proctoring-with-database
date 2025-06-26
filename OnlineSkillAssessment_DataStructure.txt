@@ -305,11 +305,11 @@ Log as suspicious if the test window loses focus (e.g., the user clicks outside 
 Log as suspicious if the user exits full screen mode during the test.
 7. Shortcut Keys Control => done
 Log as suspicious if the user attempts to use restricted keyboard shortcuts (e.g., Alt+Tab, Ctrl+C, Ctrl+V, Print Screen, etc.).
-8. Lighting Analysis
+8. Lighting Analysis => done
 Log as suspicious if lighting conditions are too dark or change drastically (e.g., sudden darkness or brightness).
 9. Gaze Tracking Analysis
 Log as suspicious if the user’s gaze is away from the screen for a significant period (e.g., looking away for more than 2–3 seconds repeatedly).
-10. Multiple Face Detection
+10. Multiple Face Detection => done
 Log as suspicious if more than one face is detected in the camera frame at any time.
 11. Audio Monitoring
 Log as suspicious if unusual or loud background noises are detected (e.g., voices, conversations, or other people speaking).
