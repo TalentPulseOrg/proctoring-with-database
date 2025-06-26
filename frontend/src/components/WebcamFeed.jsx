@@ -44,7 +44,7 @@ const WebcamFeed = ({ sessionId, userId, isActive = true }) => {
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
       
       // Analyze lighting
-      const lightingAnalysis = analyzeLighting(canvas);
+      const lightingAnalysis = await analyzeLighting(canvas, sessionId, isActive);
       setLightingStatus(lightingAnalysis);
       
       // Convert to blob
@@ -138,7 +138,7 @@ const WebcamFeed = ({ sessionId, userId, isActive = true }) => {
             console.log("Snapshot interval started - every 5 seconds");
             
             // Set up lighting check interval
-            lightingCheckIntervalRef.current = setInterval(() => {
+            lightingCheckIntervalRef.current = setInterval(async () => {
               if (videoRef.current && canvasRef.current) {
                 const video = videoRef.current;
                 const canvas = canvasRef.current;
@@ -148,8 +148,12 @@ const WebcamFeed = ({ sessionId, userId, isActive = true }) => {
                 canvas.height = video.videoHeight;
                 ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
                 
-                const lightingAnalysis = analyzeLighting(canvas);
-                setLightingStatus(lightingAnalysis);
+                try {
+                  const lightingAnalysis = await analyzeLighting(canvas, sessionId, isActive);
+                  setLightingStatus(lightingAnalysis);
+                } catch (error) {
+                  console.error('Error analyzing lighting:', error);
+                }
               }
             }, 2000); // Check lighting every 2 seconds
           }, 10000);

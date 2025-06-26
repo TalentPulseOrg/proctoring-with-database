@@ -322,7 +322,11 @@ export default function TestInterface() {
             clearInterval(lightingCheckIntervalRef.current);
           }
 
-          lightingCheckIntervalRef.current = setInterval(checkLighting, 10000); // Increased to 10 seconds
+          lightingCheckIntervalRef.current = setInterval(() => {
+            checkLighting().catch(err => {
+              console.error('Error in lighting check:', err);
+            });
+          }, 10000); // Increased to 10 seconds
         }
       } catch (err) {
         console.error("Failed to access webcam:", err);
@@ -330,7 +334,7 @@ export default function TestInterface() {
       }
     };
 
-    const checkLighting = () => {
+    const checkLighting = async () => {
       if (!videoRef.current || !canvasRef.current) return;
 
       const video = videoRef.current;
@@ -341,8 +345,12 @@ export default function TestInterface() {
       canvas.height = video.videoHeight;
       context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-      const lightingAnalysis = analyzeLighting(canvas);
-      setLightingStatus(lightingAnalysis);
+      try {
+        const lightingAnalysis = await analyzeLighting(canvas, sessionId, isTestStarted);
+        setLightingStatus(lightingAnalysis);
+      } catch (error) {
+        console.error('Error analyzing lighting:', error);
+      }
     };
 
     startMonitoringWebcam();

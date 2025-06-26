@@ -127,7 +127,7 @@ export default function CandidateDashboard() {
             <>
               <TestInterface testData={testData} duration={testData.duration} />
               {user?.id && testData?.testId && (
-                <WebcamMonitor testId={testData.testId} sessionId={sessionId} userId={user.id} />
+                <WebcamMonitor testId={testData.testId} userId={user.id} isTestActive={showTest} />
               )}
             </>
           ) : (

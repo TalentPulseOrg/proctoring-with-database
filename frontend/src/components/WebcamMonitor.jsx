@@ -14,7 +14,7 @@ const CALIBRATION_STEPS = [
   { key: 'down', label: 'Look DOWN' },
 ];
 
-const WebcamMonitor = ({ testId, sessionId }) => {
+const WebcamMonitor = ({ testId, sessionId = null, userId, isTestActive = false }) => {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const [isStreaming, setIsStreaming] = useState(false);
@@ -97,7 +97,11 @@ const WebcamMonitor = ({ testId, sessionId }) => {
         
         // Start periodic lighting check
         console.log('Starting lighting check interval');
-        lightingCheckInterval = setInterval(checkLighting, 5000);
+        lightingCheckInterval = setInterval(() => {
+          checkLighting().catch(err => {
+            console.error('Error in lighting check:', err);
+          });
+        }, 5000);
 
         // Start gaze tracking when webcam is streaming
         if (isStreaming && videoRef.current) {
@@ -111,7 +115,7 @@ const WebcamMonitor = ({ testId, sessionId }) => {
       }
     };
 
-    const checkLighting = () => {
+    const checkLighting = async () => {
       console.log('Checking lighting...');
       if (!videoRef.current || !canvasRef.current) {
         console.error('Video or canvas ref not available');
@@ -133,7 +137,7 @@ const WebcamMonitor = ({ testId, sessionId }) => {
       context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
       // Analyze lighting
-      const lightingAnalysis = analyzeLighting(canvas);
+      const lightingAnalysis = await analyzeLighting(canvas, sessionId, isTestActive);
       console.log('Lighting analysis result:', lightingAnalysis);
       
       setLightingStatus(lightingAnalysis);

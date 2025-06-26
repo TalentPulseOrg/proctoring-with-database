@@ -1,9 +1,16 @@
+import { logLightingIssueViolation } from '../api/api';
+
+// Cooldown tracking for lighting violations (10 seconds)
+const lightingViolationCooldowns = new Map();
+
 /**
  * Analyzes the lighting conditions of a webcam frame
  * @param {HTMLCanvasElement} canvas - The canvas element containing the frame
+ * @param {number} sessionId - The test session ID for logging violations
+ * @param {boolean} isTestActive - Whether the test is currently active (started but not submitted)
  * @returns {Object} Object containing lighting analysis results
  */
-export const analyzeLighting = (canvas) => {
+export const analyzeLighting = async (canvas, sessionId = null, isTestActive = false) => {
   console.log('Starting lighting analysis...');
   
   if (!canvas) {
@@ -56,9 +63,55 @@ export const analyzeLighting = (canvas) => {
   if (averageBrightness < 80) {
     status = 'too_dark';
     message = 'Room is too dark';
+    
+    // Log violation only if test is active, sessionId is provided, and cooldown has passed
+    if (isTestActive && sessionId) {
+      const now = Date.now();
+      const cooldownKey = `dark_${sessionId}`;
+      const lastViolationTime = lightingViolationCooldowns.get(cooldownKey) || 0;
+      
+      if (now - lastViolationTime >= 10000) { // 10 seconds cooldown
+        try {
+          console.log('Logging lighting violation: too dark');
+          await logLightingIssueViolation(sessionId, {
+            level: averageBrightness,
+            status: status
+          });
+          // Update cooldown timestamp
+          lightingViolationCooldowns.set(cooldownKey, now);
+        } catch (error) {
+          console.error('Failed to log lighting violation:', error);
+        }
+      } else {
+        console.log('Lighting violation (dark) skipped due to cooldown');
+      }
+    }
   } else if (averageBrightness > 200) {
     status = 'too_bright';
     message = 'Room is too bright';
+    
+    // Log violation only if test is active, sessionId is provided, and cooldown has passed
+    if (isTestActive && sessionId) {
+      const now = Date.now();
+      const cooldownKey = `bright_${sessionId}`;
+      const lastViolationTime = lightingViolationCooldowns.get(cooldownKey) || 0;
+      
+      if (now - lastViolationTime >= 10000) { // 10 seconds cooldown
+        try {
+          console.log('Logging lighting violation: too bright');
+          await logLightingIssueViolation(sessionId, {
+            level: averageBrightness,
+            status: status
+          });
+          // Update cooldown timestamp
+          lightingViolationCooldowns.set(cooldownKey, now);
+        } catch (error) {
+          console.error('Failed to log lighting violation:', error);
+        }
+      } else {
+        console.log('Lighting violation (bright) skipped due to cooldown');
+      }
+    }
   }
   
   console.log('Lighting status:', status, 'Message:', message);
