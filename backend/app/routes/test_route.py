@@ -333,6 +333,18 @@ async def save_snapshot(
         
         print(f"Image saved successfully to {filepath}")
         
+        # Create database entry for the webcam snapshot
+        try:
+            from app.services.media_database_service import media_db_service
+            success = media_db_service.process_file_creation(filepath)
+            if success:
+                print(f"Database entry created for webcam snapshot: {filepath}")
+            else:
+                print(f"Failed to create database entry for webcam snapshot: {filepath}")
+        except Exception as e:
+            print(f"Error creating database entry for webcam snapshot: {str(e)}")
+            logger.error(f"Error creating database entry for webcam snapshot: {str(e)}")
+        
         # Detect faces in the image (if available)
         face_count = 0
         try:

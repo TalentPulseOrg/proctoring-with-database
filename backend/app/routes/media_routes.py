@@ -1,9 +1,12 @@
-from fastapi import APIRouter, HTTPException, Path, Depends
+from fastapi import APIRouter, HTTPException, Path, Depends, File, UploadFile
 from fastapi.responses import FileResponse
 from typing import Optional
 import os
 import logging
 from ..services.file_service import FileService
+from sqlalchemy.orm import Session
+from app.database import get_db
+from app.services.media_database_service import media_db_service
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -90,4 +93,20 @@ async def get_screen_capture(session_id: int, filename: str):
         return FileResponse(screen_capture_path)
     except Exception as e:
         logger.error(f"Error serving screen capture: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/scan-existing-files")
+async def scan_existing_files(db: Session = Depends(get_db)):
+    """
+    Scan existing files in media directories and create database entries for any missing ones
+    """
+    try:
+        stats = media_db_service.scan_existing_files()
+        return {
+            "success": True,
+            "message": "File scan completed",
+            "stats": stats
+        }
+    except Exception as e:
+        logger.error(f"Error scanning existing files: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e)) 

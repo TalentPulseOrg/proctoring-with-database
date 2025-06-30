@@ -181,6 +181,17 @@ class ScreenshotService:
                 screenshot = pyautogui.screenshot()
                 screenshot.save(filepath)
 
+                # Create database entry for the screenshot
+                try:
+                    from app.services.media_database_service import media_db_service
+                    success = media_db_service.process_file_creation(filepath)
+                    if success:
+                        logger.info(f"Database entry created for screenshot: {filepath}")
+                    else:
+                        logger.warning(f"Failed to create database entry for screenshot: {filepath}")
+                except Exception as e:
+                    logger.error(f"Error creating database entry for screenshot: {str(e)}")
+
                 # Reset error count on successful capture
                 self.error_count = 0
                 logger.info(f"Saved screenshot to: {filepath}")

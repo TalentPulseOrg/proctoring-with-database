@@ -22,8 +22,8 @@ class FileService:
         # Create mapping of file types to directories
         type_dirs = {
             "id_photo": MEDIA_ROOT / "id_photos",
-            "webcam_photo": MEDIA_ROOT / "webcam_photos",
-            "screen_capture": MEDIA_ROOT / "screenshots",
+            "webcam_photo": MEDIA_ROOT / "screenshots",  # Webcam snapshots go to screenshots folder
+            "screen_capture": MEDIA_ROOT / "snapshots",  # Screen captures go to snapshots folder
             "test_document": MEDIA_ROOT / "test_documents",
             "suspicious": MEDIA_ROOT / "suspicious_snapshots",
         }
@@ -124,7 +124,11 @@ class FileService:
             
             # Create a subdirectory with the entity_id if provided
             if entity_id:
-                media_dir = media_dir / str(entity_id)
+                # For screen captures and webcam photos, use test_{entity_id} format
+                if file_type in ["screen_capture", "webcam_photo"]:
+                    media_dir = media_dir / f"test_{entity_id}"
+                else:
+                    media_dir = media_dir / str(entity_id)
                 media_dir.mkdir(exist_ok=True)
             
             # Generate a unique filename if not provided
@@ -146,7 +150,12 @@ class FileService:
             dir_name = media_dir.relative_to(MEDIA_ROOT).parts[0]
             
             # Generate URL path using the actual directory name for consistency
-            url_path = f"/media/{dir_name}/{entity_id}/{filename}" if entity_id else f"/media/{dir_name}/{filename}"
+            if entity_id and file_type in ["screen_capture", "webcam_photo"]:
+                url_path = f"/media/{dir_name}/test_{entity_id}/{filename}"
+            elif entity_id:
+                url_path = f"/media/{dir_name}/{entity_id}/{filename}"
+            else:
+                url_path = f"/media/{dir_name}/{filename}"
             
             logger.info(f"Binary data saved to {file_path} with URL path {url_path}")
             return True, str(file_path), url_path
