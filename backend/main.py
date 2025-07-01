@@ -21,6 +21,9 @@ import sys
 from starlette.exceptions import HTTPException as StarletteHTTPException
 import traceback
 import datetime
+from app.routes import batch_api
+from app.routes import manual_test
+from app.routes import library_routes
 
 # Initialize database
 from app.database import engine, Base, recreate_all_tables, create_default_admin
@@ -213,6 +216,7 @@ try:
     app.include_router(proctoring_events.router)
     app.include_router(monitoring.router)
     app.include_router(user_routes.router)
+    app.include_router(library_routes.router)
 except Exception as e:
     logger.error(f"Error including existing routers: {str(e)}")
 
@@ -225,6 +229,8 @@ try:
     app.include_router(violation_analytics.router)
     app.include_router(face_verification_api.router)
     app.include_router(media_routes.router)
+    app.include_router(batch_api.router)
+    app.include_router(manual_test.router)
 except Exception as e:
     logger.error(f"Error including new API routers: {str(e)}")
 
