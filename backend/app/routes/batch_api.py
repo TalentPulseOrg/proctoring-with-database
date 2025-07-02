@@ -130,7 +130,95 @@ async def manual_generate_question_api(
         pdf_path = os.path.join(UPLOAD_FOLDER, filename)
         pdf_text = extract_pdf_text(pdf_path)
         # Generate prompt from PDF text
-        prompt = f"""Generate {noOfQuestions} MCQs keeping blooms taxonomy in center and ensuring that all levels of blooms taxonomy (remember, understand, apply, analyze, evaluate, create) are covered in equal proportion from the following text for domain '{domain}' and topic '{topic}':\n\n{pdf_text}\n\nGenerate response with the following JSON format:\n{{\n  \"questions\": [\n    {{\n      \"questionText\": \"What is...?\",\n      \"positiveMarking\": 1,\n      \"negativeMarking\": 0,\n      \"timeToSolve\": 10,\n      \"BTLevel\": 1,\n      \"difficulty\": 1,\n      \"optionData\": [\n        {{\"optionName\": \"option1\", \"optionText\": \"Option A\"}},\n        {{\"optionName\": \"option2\", \"optionText\": \"Option B\"}},\n        {{\"optionName\": \"option3\", \"optionText\": \"Option C\"}},\n        {{\"optionName\": \"option4\", \"optionText\": \"Option D\"}}\n      ],\n      \"answer\": \"option1\"\n    }}\n  ]\n}}\n\nRequirements:\n1. Return ONLY the JSON object, no other text\n2. Each question must have exactly 4 options in optionData\n3. The answer must match one of the optionName values\n4. Make sure the JSON is properly formatted with no trailing commas\n5. Use proper JSON escaping for special characters\n6. Questions should be sorted in order of blooms taxonomy levels: remember, understand, analyze, apply, evaluate, create\n7. Ensure all levels of blooms taxonomy are covered in equal proportion"""
+        prompt = f"""You are an expert-level question generator tasked with creating {noOfQuestions} high-quality multiple-choice questions (MCQs) for domain '{domain}' and topic '{topic}': {pdf_text}. Ensure accuracy, clarity, and adherence to Bloom’s Taxonomy. Adhere to following guidelines:
+        
+        ---
+        ### *1. Topic Identification and Organization
+        - Generate questions only for the provided topic {topic} from {pdf_text}.
+        - Organize questions by topic, ensuring equal coverage across all topics.
+        
+        ### *2. Bloom's Taxonomy Coverage*
+        - Ensure proper distribution of all six levels of Bloom's taxonomy as per the followingchart:
+            Remember : 10-15 percent
+            Understand : 15-20 percent
+            Apply : 25-30 percent
+            Analyze : 15-20 percent
+            Evaluate : 10-15 percent
+            Create : 5-10 percent
+            
+        - *Remember*: Recall basic facts and definitions.  
+        - *Understand*: Explain concepts or interpret information.  
+        - *Apply*: Solve problems using learned techniques.  
+        - *Analyze*: Break down information to examine relationships.  
+        - *Evaluate*: Judge based on criteria or standards.  
+        - *Create*: Formulate new solutions or ideas.  
+        - Sort questions in the order of Bloom's taxonomy levels: remember, understand, apply,analyze, evaluate, and create.  
+        
+        ---
+        
+        ### *3. Question Design*  
+        - Each question must be clear, concise, and self-contained.  
+        - For applied questions, include *code snippets* where relevant, written in programminglanguages suitable to the "{topic}" (e.g., Python, JavaScript, etc.).  
+        - Indicate the language explicitly in the "code" field.  
+        - Ensure code snippets are executable and produce results aligned with the correct answer.  
+        ---
+        
+        ### *4. Skills coverage
+        - If comma seperated skills or topic are provided, ensure questions of each comma seperated skillare included.
+        - Generate equal number of questions of each skill or topic.
+        - Ensure generated questions are relevant to provided skills or topic.
+
+        ### *5. Options and Correct Answer*  
+        - Provide *four options* (option1, option2, option3, option4) for each question.  
+        - Systematically alternate the correct option between "A", "B", "C", and "D" across theset.  
+        - Design *distractor options* (incorrect answers) to be plausible, closely related to thecorrect answer, and capable of challenging critical thinking.  
+
+        ---
+        
+        ### *6. Difficulty Levels*  
+        - Assign one of three difficulty levels to each question: *Easy, **Intermediate, or**Hard*.  
+        - Ensure a balanced distribution of difficulty across questions.  
+
+        ---
+        
+        ### *7. JSON Output Format*  
+        Strictly adhere to the following JSON structure:
+        {{
+            "questionData": {{
+                "questions": [
+                    {{
+                        "questionText": "Question text here...",
+                        "positiveMarking": 1,
+                        "negativeMarking": 0,
+                        "timeToSolve": 10,
+                        "BTLevel": 1,
+                        "difficulty": 1,
+                        "optionData": [
+                          { "optionName": "option1", "optionText": "..." },
+                          { "optionName": "option2", "optionText": "..." },
+                          { "optionName": "option3", "optionText": "..." },
+                          { "optionName": "option4", "optionText": "..." }
+                        ],
+                        "answer": "option2"
+                    }}
+                ]
+            }}
+        }}
+
+        ### *8. Verification Requirements*  
+        - *Accuracy*: Verify the correctness of the provided correct option.  
+        - *Code Execution*: For code-based questions, execute the code snippets in a sandboxenvironment to confirm results.  
+        - *Distractor Quality*: Ensure incorrect options are plausible but not correct.  
+        - *Taxonomy and Difficulty Validation*: Confirm that the Bloom's taxonomy level anddifficulty level match the question's complexity.  
+
+        ---
+
+        ### *9. Additional Guidelines*  
+        - Avoid ambiguity or overly complex jargon in questions and options.  
+        - Use professional language and ensure all questions align with the topic and subtopic.  
+        - Validate all Q&A pairs before finalizing.      
+        
+        """
         response = genai_model.generate_content(prompt)
         data = parse_gemini_response(response.text)
         # Clean up the uploaded file
@@ -148,7 +236,98 @@ def generate_question_api(request: QuestionGenerationRequest):
     if not genai_model:
         raise HTTPException(status_code=500, detail="AI model not configured. Set GEMINI_API_KEY.")
     try:
-        prompt = f"""You are a question generator. Generate {request.noOfQuestions} multiple choice questions for the topic '{request.topic}' in the domain '{request.domain}'.\nReturn ONLY a valid JSON object in this exact format, with no additional text or explanation:\n{{\n  \"questions\": [\n    {{\n      \"questionText\": \"Question text here\",\n      \"positiveMarking\": 1,\n      \"negativeMarking\": 0,\n      \"timeToSolve\": 10,\n      \"BTLevel\": 1,\n      \"difficulty\": 1,\n      \"optionData\": [\n        {{\"optionName\": \"option1\", \"optionText\": \"Option A\"}},\n        {{\"optionName\": \"option2\", \"optionText\": \"Option B\"}},\n        {{\"optionName\": \"option3\", \"optionText\": \"Option C\"}},\n        {{\"optionName\": \"option4\", \"optionText\": \"Option D\"}}\n      ],\n      \"answer\": \"option2\"\n    }}\n  ]\n}}\n\nRequirements:\n1. Return ONLY the JSON object, no other text\n2. Each question must have exactly 4 options in optionData\n3. The answer must match one of the optionName values\n4. Make sure the JSON is properly formatted with no trailing commas\n5. Use proper JSON escaping for special characters\n6. Each optionText should be a complete sentence or phrase\n7. Questions should be challenging but fair\n8. Options should be plausible and well-distributed"""
+        prompt = f"""You are an expert-level question generator tasked with creating {request.noOfQuestions} high-qaulity multiple-choice questions (MCQs) on '{request.topic}' in the domain '{request.domain}'. Ensure accuracy, clarity, and adherence to Bloom’s Taxonomy. Adhere to following guidelines:
+        
+            ---
+            ### *1. Topic and Domain Identification and Organization
+            - Generate questions only for the provided topic {request.topic} in the domain {request.domain}.
+            - Organize questions by topic, ensuring equal coverage across all topics.
+            
+            ### *2. Bloom's Taxonomy Coverage*
+            - Ensure proper distribution of all six levels of Bloom's taxonomy as per the following chart:
+                Remember : 10-15 percent
+                Understand : 15-20 percent
+                Apply : 25-30 percent
+                Analyze : 15-20 percent
+                Evaluate : 10-15 percent
+                Create : 5-10 percent
+                
+            - *Remember*: Recall basic facts and definitions.  
+            - *Understand*: Explain concepts or interpret information.  
+            - *Apply*: Solve problems using learned techniques.  
+            - *Analyze*: Break down information to examine relationships.  
+            - *Evaluate*: Judge based on criteria or standards.  
+            - *Create*: Formulate new solutions or ideas.  
+            - Sort questions in the order of Bloom's taxonomy levels: remember, understand, apply, analyze, evaluate, and create.  
+            
+            ---
+            
+            ### *3. Question Design*  
+            - Each question must be clear, concise, and self-contained.  
+            - For applied questions, include *code snippets* where relevant, written in programming languages suitable to the "{request.topic}" (e.g., Python, JavaScript, etc.).  
+            - Indicate the language explicitly in the "code" field.  
+            - Ensure code snippets are executable and produce results aligned with the correct answer.  
+
+            ---
+            
+            ### *4. Skills coverage
+            - If comma seperated skills or topics are provided, ensure questions of each comma seperated skill or topic are included.
+            - Generate equal number of questions of each skill or topic.
+            - Ensure generated questions are relevant to provided skills or topics.
+
+            ### *5. Options and Correct Answer*  
+            - Provide *four options* (option1, option2, option3, option4) for each question.  
+            - Systematically alternate the correct option between "A", "B", "C", and "D" across the set.  
+            - Design *distractor options* (incorrect answers) to be plausible, closely related to the correct answer, and capable of challenging critical thinking.  
+
+            ---
+            
+            ### *6. Difficulty Levels*  
+            - Assign one of three difficulty levels to each question: *Easy, **Intermediate, or **Hard*.  
+            - Ensure a balanced distribution of difficulty across questions.  
+
+            ---
+        
+            ### *7. JSON Output Format*  
+            Strictly adhere to the following JSON structure:
+            {{
+                "questionData": {{
+                    "questions": [
+                        {{
+                            "questionText": "Question text here...",
+                            "positiveMarking": 1,
+                            "negativeMarking": 0,
+                            "timeToSolve": 10,
+                            "BTLevel": 1,
+                            "difficulty": 1,
+                            "optionData": [
+                              { "optionName": "option1", "optionText": "..." },
+                              { "optionName": "option2", "optionText": "..." },
+                              { "optionName": "option3", "optionText": "..." },
+                              { "optionName": "option4", "optionText": "..." }
+                            ],
+                            "answer": "option2"
+                        }}
+                    ]
+                }}
+            }}
+
+            ### *8. Verification Requirements*  
+            - *Accuracy*: Verify the correctness of the provided correct option.  
+            - *Code Execution*: For code-based questions, execute the code snippets in a sandbox environment to confirm results.  
+            - *Distractor Quality*: Ensure incorrect options are plausible but not correct.  
+            - *Taxonomy and Difficulty Validation*: Confirm that the Bloom's taxonomy level and difficulty level match the question's complexity.  
+
+            ---
+
+            ### *9. Additional Guidelines*  
+            - Avoid ambiguity or overly complex jargon in questions and options.  
+            - Use professional language and ensure all questions align with the topic and subtopic.  
+            - Validate all Q&A pairs before finalizing.
+            
+            """
+        
+
         response = genai_model.generate_content(prompt)
         data = parse_gemini_response(response.text)
         return {"questionData": data}
