@@ -131,7 +131,7 @@ async def generate_test(
             test_data = generate_mock_questions(request.skill, request.num_questions)
         else:
             # Use Gemini to generate questions
-            prompt = f"""You are an expert-level question generator tasked with creating {request.num_questions} high-quality multiple-choice questions (MCQs) on {request.skill}. Ensure accuracy, clarity, and adherence to Bloom’s Taxonomy. Adhere to following guidelines:
+            prompt = f"""You are an expert-level question generator tasked with creating {request.num_questions} high-quality multiple-choice questions (MCQs) on {request.skill}. Ensure accuracy, clarity, and adherence to Bloom's Taxonomy. Adhere to following guidelines:
 
             ---
             ### *1. Topic Identification and Organization
@@ -225,17 +225,23 @@ async def generate_test(
         if not existing_questions or len(existing_questions) == 0:
             db_questions = []
             for q_data in test_data["questions"]:
+                # Normalize correct answer field
+                correct_answer = q_data.get("correct_answer") or q_data.get("answer")
+                if not correct_answer:
+                    logger.error(f"Question missing correct_answer: {q_data}")
+                    continue  # Skip this question
+
                 # Create options in the format expected by QuestionCreate
                 options = []
                 for opt in q_data["options"]:
-                    is_correct = opt == q_data["correct_answer"]
+                    is_correct = opt == correct_answer
                     options.append(OptionCreate(option_text=opt, is_correct=is_correct))
 
                 # Create question
                 question = QuestionCreate(
                     test_id=db_test.test_id,  # Use test_id as foreign key
                     question_text=q_data["question"],
-                    correct_answer=q_data["correct_answer"],
+                    correct_answer=correct_answer,
                     options=options,
                 )
 
