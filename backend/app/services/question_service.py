@@ -4,6 +4,7 @@ from ..models.option import Option
 from ..schemas.question import QuestionCreate, QuestionUpdate, OptionCreate
 from typing import List
 import logging
+from sqlalchemy import func
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -158,4 +159,22 @@ class QuestionService:
         except Exception as e:
             logger.error(f"Error in add_option: {str(e)}")
             db.rollback()
+            raise
+    
+    @staticmethod
+    def get_random_questions_by_test_id(db: Session, test_id: int, num_questions: int):
+        if db is None:
+            logger.error("Database session is None in get_random_questions_by_test_id")
+            raise ValueError("Database session is not available")
+        try:
+            # Detect SQL dialect for random ordering
+            dialect_name = db.bind.dialect.name
+            if dialect_name == "mssql":
+                # SQL Server uses NEWID()
+                return db.query(Question).filter(Question.test_id == test_id).order_by(func.newid()).limit(num_questions).all()
+            else:
+                # SQLite/Postgres use RANDOM()
+                return db.query(Question).filter(Question.test_id == test_id).order_by(func.random()).limit(num_questions).all()
+        except Exception as e:
+            logger.error(f"Error in get_random_questions_by_test_id: {str(e)}")
             raise 

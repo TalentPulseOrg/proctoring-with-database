@@ -89,27 +89,30 @@ async def generate_test(
                 db_questions = QuestionService.get_questions_by_test_id(
                     db, existing_test.test_id
                 )
-
-                # If questions already exist, format and return them
+                # If questions already exist, randomly select the requested number and return them
                 if db_questions and len(db_questions) > 0:
-                    test_data = {"questions": []}
-                    for q in db_questions:
-                        options = [opt.option_text for opt in q.options]
-                        correct_answer = next(
-                            (opt.option_text for opt in q.options if opt.is_correct),
-                            None,
+                    random_questions = QuestionService.get_random_questions_by_test_id(db, existing_test.test_id, request.num_questions)
+                    formatted_questions = []
+                    for db_question in random_questions:
+                        options_data = []
+                        for option in db_question.options:
+                            options_data.append(
+                                {
+                                    "id": option.id,
+                                    "text": option.option_text,
+                                    "is_correct": option.is_correct,
+                                }
+                            )
+                        formatted_questions.append(
+                            {
+                                "id": db_question.id,
+                                "question": db_question.question_text,
+                                "code": db_question.code,
+                                "options": options_data,
+                                "correct_answer": db_question.correct_answer,
+                            }
                         )
-
-                        question_data = {
-                            "question": q.question_text,
-                            "code": q.code,  # Include code field
-                            "options": options,
-                            "correct_answer": correct_answer or q.correct_answer,
-                        }
-                        test_data["questions"].append(question_data)
-
-                    # Add test ID to the response
-                    test_data["testId"] = existing_test.test_id
+                    test_data = {"questions": formatted_questions, "testId": existing_test.test_id}
                     return test_data
 
         # Create a test record in the database (or use existing if found)
@@ -131,8 +134,9 @@ async def generate_test(
             )
             test_data = generate_mock_questions(request.skill, request.num_questions)
         else:
-            # Use Gemini to generate questions
-            prompt = f"""You are an expert-level question generator tasked with creating {request.num_questions} high-quality multiple-choice questions (MCQs) on {request.skill}. Ensure accuracy, clarity, and adherence to Bloom's Taxonomy. Adhere to following guidelines:
+            # Use Gemini to generate 3x the requested number of questions for the question bank
+            ai_num_questions = request.num_questions * 3
+            prompt = f"""You are an expert-level question generator tasked with creating {ai_num_questions} high-quality multiple-choice questions (MCQs) on {request.skill}. Ensure accuracy, clarity, and adherence to Bloom's Taxonomy. Adhere to following guidelines:
 
             ---
             ### *1. Topic Identification and Organization
@@ -224,6 +228,10 @@ async def generate_test(
 
             response = model.generate_content(prompt)
             test_data = parse_gemini_response(response.text)
+            # --- ENFORCE QUESTION COUNT LIMIT FOR STORAGE ---
+            if "questions" in test_data and isinstance(test_data["questions"], list):
+                test_data["questions"] = test_data["questions"][:ai_num_questions]
+            # -------------------------------------
 
         # Store questions and options in the database - only if this is a new test
         # Check if the test already has questions first
@@ -276,37 +284,33 @@ async def generate_test(
 
         # Return questions with database IDs for proper scoring
         # Get the saved questions from the database to include IDs
-        saved_questions = QuestionService.get_questions_by_test_id(db, db_test.test_id)
-        if saved_questions:
-            formatted_questions = []
-            for db_question in saved_questions:
-                # Get options for this question
-                options_data = []
-                for option in db_question.options:
-                    options_data.append(
-                        {
-                            "id": option.id,  # Include database option ID
-                            "text": option.option_text,
-                            "is_correct": option.is_correct,
-                        }
-                    )
-
-                formatted_questions.append(
+        random_questions = QuestionService.get_random_questions_by_test_id(db, db_test.test_id, request.num_questions)
+        formatted_questions = []
+        for db_question in random_questions:
+            # Get options for this question
+            options_data = []
+            for option in db_question.options:
+                options_data.append(
                     {
-                        "id": db_question.id,  # Include database question ID
-                        "question": db_question.question_text,
-                        "code": db_question.code,  # Include code field
-                        "options": options_data,
-                        "correct_answer": db_question.correct_answer,
+                        "id": option.id,  # Include database option ID
+                        "text": option.option_text,
+                        "is_correct": option.is_correct,
                     }
                 )
 
-            # Update the response with database questions
-            test_data["questions"] = formatted_questions
+            formatted_questions.append(
+                {
+                    "id": db_question.id,  # Include database question ID
+                    "question": db_question.question_text,
+                    "code": db_question.code,  # Include code field
+                    "options": options_data,
+                    "correct_answer": db_question.correct_answer,
+                }
+            )
 
-        # Add test ID to the response
+        # Update the response with the randomly selected questions
+        test_data["questions"] = formatted_questions
         test_data["testId"] = db_test.test_id
-
         return test_data
     except Exception as e:
         logger.error(f"Error generating test: {str(e)}", exc_info=True)

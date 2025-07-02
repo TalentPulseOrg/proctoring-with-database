@@ -57,7 +57,7 @@ logging.getLogger("sqlalchemy.engine").setLevel(logging.WARNING)
 # Drop and recreate database tables - but catch any errors
 try:
     logger.warning("Recreating database tables...")
-    recreate_all_tables()
+    # recreate_all_tables()
     logger.warning("Database tables recreated successfully.")
 except Exception as e:
     logger.error(f"Failed to recreate tables: {str(e)}")
