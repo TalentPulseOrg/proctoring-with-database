@@ -49,7 +49,7 @@ if not api_key:
     genai_model = None
 else:
     genai.configure(api_key=api_key)
-    genai_model = genai.GenerativeModel('gemini-1.5-flash')
+    genai_model = genai.GenerativeModel('gemini-2.5-flash-lite-preview-06-17')
 
 # File upload configuration
 UPLOAD_FOLDER = "uploads"
@@ -142,3 +142,16 @@ async def manual_generate_question_api(
     except Exception as e:
         logger.error(f"Error in manual question generation: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Manual Question Generation Error: {str(e)}")
+
+@router.post("/api/v1/questions/generate", response_model=QuestionGenerationResponse)
+def generate_question_api(request: QuestionGenerationRequest):
+    if not genai_model:
+        raise HTTPException(status_code=500, detail="AI model not configured. Set GEMINI_API_KEY.")
+    try:
+        prompt = f"""You are a question generator. Generate {request.noOfQuestions} multiple choice questions for the topic '{request.topic}' in the domain '{request.domain}'.\nReturn ONLY a valid JSON object in this exact format, with no additional text or explanation:\n{{\n  \"questions\": [\n    {{\n      \"questionText\": \"Question text here\",\n      \"positiveMarking\": 1,\n      \"negativeMarking\": 0,\n      \"timeToSolve\": 10,\n      \"BTLevel\": 1,\n      \"difficulty\": 1,\n      \"optionData\": [\n        {{\"optionName\": \"option1\", \"optionText\": \"Option A\"}},\n        {{\"optionName\": \"option2\", \"optionText\": \"Option B\"}},\n        {{\"optionName\": \"option3\", \"optionText\": \"Option C\"}},\n        {{\"optionName\": \"option4\", \"optionText\": \"Option D\"}}\n      ],\n      \"answer\": \"option2\"\n    }}\n  ]\n}}\n\nRequirements:\n1. Return ONLY the JSON object, no other text\n2. Each question must have exactly 4 options in optionData\n3. The answer must match one of the optionName values\n4. Make sure the JSON is properly formatted with no trailing commas\n5. Use proper JSON escaping for special characters\n6. Each optionText should be a complete sentence or phrase\n7. Questions should be challenging but fair\n8. Options should be plausible and well-distributed"""
+        response = genai_model.generate_content(prompt)
+        data = parse_gemini_response(response.text)
+        return {"questionData": data}
+    except Exception as e:
+        logger.error(f"Error generating questions: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"AI Error: {str(e)}")

@@ -115,7 +115,7 @@ const AdminTestCreation = () => {
                         value={formData.numQuestions}
                         onChange={handleChange}
                         min="1"
-                        max="20"
+                        max="100"
                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                         required
                     />

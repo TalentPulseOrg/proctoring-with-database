@@ -41,7 +41,7 @@ async def generate_questions_with_gemini(library_name: str, topic: str) -> Dict[
     if not api_key:
         raise HTTPException(status_code=500, detail="Gemini API key not set.")
     genai.configure(api_key=api_key)
-    model = genai.GenerativeModel('gemini-1.5-flash')
+    model = genai.GenerativeModel('gemini-2.5-flash-lite-preview-06-17')
     prompt = f"""
 You are an expert question generator for technical libraries.
 Given the library name: '{library_name}' and topic: '{topic}',

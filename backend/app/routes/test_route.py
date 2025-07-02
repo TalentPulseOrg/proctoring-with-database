@@ -46,7 +46,7 @@ if not api_key:
 else:
     mock_mode = False
     genai.configure(api_key=api_key)
-    model = genai.GenerativeModel('gemini-1.5-flash')
+    model = genai.GenerativeModel('gemini-2.5-flash-lite-preview-06-17')
 
 class TestRequest(BaseModel):
     skill: str

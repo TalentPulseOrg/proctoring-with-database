@@ -318,3 +318,98 @@ Log as suspicious if unusual or loud background noises are detected (e.g., voice
 ---
 
 This document serves as a comprehensive reference for the Online Skill Assessment System's data structure, API endpoints, and key features. It should be updated as the system evolves to maintain accuracy and usefulness for developers and stakeholders.
+
+
+
+
+
+
+
+
+
+
+
+
+prompt = f"""
+            You are an expert-level question generator tasked with creating {total_questions} high-quality multiple-choice questions (MCQs) on "{skill}" and its subtopics: {subtopic}. Ensure accuracy, clarity, and adherence to Bloom’s Taxonomy. Adhere to following guidelines:
+
+            ---               
+            ### *1. Subtopic Identification and Organization
+            - Generate questions only for the provided subtopics {subtopic}.
+            - Organize questions by subtopic, ensuring equal coverage across all subtopics.
+
+            ### *2. Bloom's Taxonomy Coverage*
+            - Ensure proper distribution of all six levels of Bloom's taxonomy as per the following chart:
+                Remember : 10-15 percent
+                Understand : 15-20 percent
+                Apply : 25-30 percent
+                Analyze : 15-20 percent
+                Evaluate : 10-15 percent
+                Create : 5-10 percent
+                
+            - *Remember*: Recall basic facts and definitions.  
+            - *Understand*: Explain concepts or interpret information.  
+            - *Apply*: Solve problems using learned techniques.  
+            - *Analyze*: Break down information to examine relationships.  
+            - *Evaluate*: Judge based on criteria or standards.  
+            - *Create*: Formulate new solutions or ideas.  
+            - Sort questions in the order of Bloom's taxonomy levels: remember, understand, apply, analyze, evaluate, and create.  
+
+            ---
+
+            ### *3. Question Design*  
+            - Each question must be clear, concise, and self-contained.  
+            - For applied questions, include *code snippets* where relevant, written in programming languages suitable to the "{skill}" (e.g., Python, JavaScript, etc.).  
+            - Indicate the language explicitly in the "code" field.  
+            - Ensure code snippets are executable and produce results aligned with the correct answer.  
+
+            ---
+
+            ### *4. Skills coverage
+            - If comma seperated skills are provided, ensure questions of each comma seperated skill are included.
+            - Generate equal number of questions of each skill.
+            - Ensure generated questions are relevant to provided skills.
+
+            ### *5. Options and Correct Answer*  
+            - Provide *four options* (option1, option2, option3, option4) for each question.  
+            - Systematically alternate the correct option between "A", "B", "C", and "D" across the set.  
+            - Design *distractor options* (incorrect answers) to be plausible, closely related to the correct answer, and capable of challenging critical thinking.  
+
+            ---
+
+            ### *6. Difficulty Levels*  
+            - Assign one of three difficulty levels to each question: *Easy, **Intermediate, or **Hard*.  
+            - Ensure a balanced distribution of difficulty across questions.  
+
+            ---
+
+            ### *7. JSON Output Format*  
+            Strictly adhere to the following JSON structure:
+            {{
+                "questions": [
+                    {{
+                        "topic": "{skill}",
+                        "subtopic": "",
+                        "question": "What is ...?",
+                        "code": "<language>\n<code_snippet>\n",
+                        "options" : ["option A", "option B", "option C", "option D"],
+                        "answer": "option A",
+                        "BT_level": "understand",
+                        "difficulty": "Easy"
+                    }},
+                ]
+            }}
+
+            ### *8. Verification Requirements*  
+            - *Accuracy*: Verify the correctness of the provided correct option.  
+            - *Code Execution*: For code-based questions, execute the code snippets in a sandbox environment to confirm results.  
+            - *Distractor Quality*: Ensure incorrect options are plausible but not correct.  
+            - *Taxonomy and Difficulty Validation*: Confirm that the Bloom's taxonomy level and difficulty level match the question's complexity.  
+
+            ---
+
+            ### *9. Additional Guidelines*  
+            - Avoid ambiguity or overly complex jargon in questions and options.  
+            - Use professional language and ensure all questions align with the topic and subtopic.  
+            - Validate all Q&A pairs before finalizing.
+        """
