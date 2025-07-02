@@ -17,6 +17,7 @@ class OptionResponse(OptionBase):
 
 class QuestionBase(BaseModel):
     question_text: str
+    code: Optional[str] = None  # Code snippets for programming questions
     correct_answer: Optional[str] = None
 
 class QuestionCreate(QuestionBase):
@@ -33,4 +34,5 @@ class QuestionResponse(QuestionBase):
 
 class QuestionUpdate(BaseModel):
     question_text: Optional[str] = None
+    code: Optional[str] = None
     correct_answer: Optional[str] = None 

@@ -8,6 +8,7 @@ class Question(Base):
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     test_id = Column(Integer, ForeignKey("tests.test_id"), nullable=False)
     question_text = Column(Text, nullable=False)
+    code = Column(Text, nullable=True)  # Code snippets for programming questions
     correct_answer = Column(String(255), nullable=True)  # May be null if using options with is_correct flag
 
     # Define relationships

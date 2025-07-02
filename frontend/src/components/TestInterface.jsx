@@ -20,6 +20,7 @@ import ProctoringSuite from "./ProctoringSuite";
 import { analyzeLighting } from "../utils/lightingAnalyzer";
 import axios from "axios";
 import WebcamFeed from "./WebcamFeed";
+import CodeBlock from "./CodeBlock";
 import { useWarning } from "../contexts/WarningContext";
 import { Box } from "@mui/material";
 import { WarningProvider } from "../contexts/WarningContext";
@@ -1070,6 +1071,11 @@ export default function TestInterface() {
                       {testData.questions[currentQuestion].question ||
                         testData.questions[currentQuestion].question_text}
                     </h2>
+
+                    {/* Display code block if question contains code */}
+                    {testData.questions[currentQuestion].code && (
+                      <CodeBlock code={testData.questions[currentQuestion].code} />
+                    )}
 
                     <div className="space-y-4">
                       {(testData.questions[currentQuestion].options || []).map(

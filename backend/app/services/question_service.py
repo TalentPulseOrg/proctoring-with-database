@@ -25,6 +25,7 @@ class QuestionService:
             db_question = Question(
                 test_id=test_id,
                 question_text=question.question_text,
+                code=question.code,  # Include the code field
                 correct_answer=question.correct_answer
             )
             db.add(db_question)

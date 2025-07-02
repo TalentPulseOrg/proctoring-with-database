@@ -102,6 +102,7 @@ async def generate_test(
 
                         question_data = {
                             "question": q.question_text,
+                            "code": q.code,  # Include code field
                             "options": options,
                             "correct_answer": correct_answer or q.correct_answer,
                         }
@@ -160,7 +161,7 @@ async def generate_test(
             ### *3. Question Design*  
             - Each question must be clear, concise, and self-contained.  
             - For applied questions, include *code snippets* where relevant, written in programming languages suitable to the "{request.skill}" (e.g., Python, JavaScript, etc.).  
-            - Indicate the language explicitly in the "code" field.  
+            - Code snippets should be placed in the "code" field and indicate the language explicitly.  
             - Ensure code snippets are executable and produce results aligned with the correct answer.  
 
             ---
@@ -190,7 +191,7 @@ async def generate_test(
                     {{
                         "topic": "{request.skill}",
                         "question": "What is ...?",
-                        "code": "<language>\n<code_snippet>\n",
+                        "code": "<language>\\n<code_snippet>\\n",
                         "options" : ["option A", "option B", "option C", "option D"],
                         "answer": "option A",
                         "BT_level": "understand",
@@ -199,7 +200,14 @@ async def generate_test(
                 ]
             }}
 
-            ### *8. Verification Requirements*  
+            ### *8. Code Field Guidelines*
+            - If the question involves programming or technical code, include the code in the "code" field
+            - The code field should start with the language name (e.g., "python", "javascript", "java", "cpp", "sql", etc.)
+            - Follow this format: "<language>\\n<actual_code>"
+            - If no code is needed for the question, set "code" to null or empty string
+            - For programming languages or technical topics, prioritize including relevant code examples
+
+            ### *9. Verification Requirements*  
             - *Accuracy*: Verify the correctness of the provided correct option.  
             - *Code Execution*: For code-based questions, execute the code snippets in a sandbox environment to confirm results.  
             - *Distractor Quality*: Ensure incorrect options are plausible but not correct.  
@@ -207,7 +215,7 @@ async def generate_test(
 
             ---
 
-            ### *9. Additional Guidelines*  
+            ### *10. Additional Guidelines*  
             - Avoid ambiguity or overly complex jargon in questions and options.  
             - Use professional language and ensure all questions align with the topic and subtopic.  
             - Validate all Q&A pairs before finalizing.
@@ -241,6 +249,7 @@ async def generate_test(
                 question = QuestionCreate(
                     test_id=db_test.test_id,  # Use test_id as foreign key
                     question_text=q_data["question"],
+                    code=q_data.get("code"),  # Include code field from AI response
                     correct_answer=correct_answer,
                     options=options,
                 )
@@ -286,6 +295,7 @@ async def generate_test(
                     {
                         "id": db_question.id,  # Include database question ID
                         "question": db_question.question_text,
+                        "code": db_question.code,  # Include code field
                         "options": options_data,
                         "correct_answer": db_question.correct_answer,
                     }
@@ -309,9 +319,20 @@ def generate_mock_questions(skill, num_questions):
 
     # Create some sample questions based on the skill
     for i in range(num_questions):
+        # Add code sample for programming-related skills
+        code_sample = None
+        if any(keyword in skill.lower() for keyword in ['python', 'javascript', 'java', 'programming', 'coding', 'algorithm', 'data structure']):
+            if 'python' in skill.lower():
+                code_sample = f"python\n# Sample Python code for question {i+1}\ndef sample_function():\n    return 'Hello World'"
+            elif 'javascript' in skill.lower():
+                code_sample = f"javascript\n// Sample JavaScript code for question {i+1}\nfunction sampleFunction() {{\n    return 'Hello World';\n}}"
+            else:
+                code_sample = f"python\n# Sample code for {skill} question {i+1}\nprint('Sample code')"
+        
         questions.append(
             {
                 "question": f"Sample question {i+1} about {skill}?",
+                "code": code_sample,
                 "options": [
                     f"Option A for question {i+1}",
                     f"Option B for question {i+1}",
