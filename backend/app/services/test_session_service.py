@@ -71,6 +71,16 @@ class TestSessionService:
                 db.flush()  # Get the ID without committing
                 user_id = user.id
                 logger.info(f"Created new user with ID: {user_id}")
+
+            # Check for existing in-progress session for this user and test
+            existing_session = db.query(TestSession).filter(
+                TestSession.user_id == user_id,
+                TestSession.test_id == session.test_id,
+                TestSession.status == "in_progress"
+            ).first()
+            if existing_session:
+                logger.info(f"Returning existing in-progress session: ID={existing_session.id}")
+                return existing_session
             
             # Create the test session with correct user data from database
             # Use IST timezone for start_time
@@ -195,7 +205,7 @@ class TestSessionService:
 
             # Calculate score
             correct_answers = 0
-            total_questions = len(questions)
+            total_questions = len(submit_data.answers)
             
             # Process each answer
             for answer in submit_data.answers:

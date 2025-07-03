@@ -1081,12 +1081,27 @@ export default function TestInterface() {
                       {(testData.questions[currentQuestion].options || []).map(
                         (option, index) => {
                           // Handle both object options and string options
-                          const optionText =
+                          let optionText =
                             typeof option === "string"
                               ? option
                               : option.text || option.option_text || option;
                           const optionId =
                             typeof option === "string" ? index : (option.id || index);
+
+                          // Detect code in option (either as a separate field or as a code block in text)
+                          let codeBlock = null;
+                          let nonCodeText = optionText;
+                          if (typeof option === "object" && option.code) {
+                            codeBlock = option.code;
+                            nonCodeText = optionText.replace(option.code, "");
+                          } else if (typeof optionText === "string" && optionText.includes("```")) {
+                            // Extract code block from markdown-style triple backticks
+                            const codeMatch = optionText.match(/```([\s\S]*?)```/);
+                            if (codeMatch) {
+                              codeBlock = codeMatch[1];
+                              nonCodeText = optionText.replace(/```[\s\S]*?```/, "");
+                            }
+                          }
 
                           return (
                             <div
@@ -1096,14 +1111,15 @@ export default function TestInterface() {
                                   ? "bg-blue-100 border-blue-500 font-medium"
                                   : "hover:bg-gray-50 border-gray-200"
                               }`}
-                              onClick={() =>
-                                handleAnswer(currentQuestion, optionId)
-                              }
+                              onClick={() => handleAnswer(currentQuestion, optionId)}
                             >
                               <span className="inline-block w-6 h-6 bg-gray-100 rounded-full text-center mr-3 text-gray-700">
                                 {String.fromCharCode(65 + index)}
                               </span>
-                              {optionText}
+                              {/* Render non-code text if present */}
+                              {nonCodeText && <span>{nonCodeText.trim()} </span>}
+                              {/* Render code block if present */}
+                              {codeBlock && <CodeBlock code={codeBlock} />}
                             </div>
                           );
                         }
@@ -1257,5 +1273,5 @@ export default function TestInterface() {
       )}
     </Box>
     </WarningProvider>
-  );
+);
 }
