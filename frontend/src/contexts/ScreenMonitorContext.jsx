@@ -104,22 +104,14 @@ export const ScreenMonitorProvider = ({ children }) => {
             return false;
         }
         
-        // Prevent common copy/paste/cut shortcuts
-        if (e.ctrlKey && (e.key === 'c' || e.key === 'C' || e.key === 'v' || e.key === 'V' || e.key === 'x' || e.key === 'X')) {
-            e.preventDefault();
-            e.stopPropagation();
-            violationType = 'copy_paste';
-            keyDescription = `Ctrl+${e.key.toUpperCase()}`;
-            console.log('Copy/paste shortcut detected:', keyDescription, 'session ID:', sessionId);
-            handleWarning('keyboard_shortcut');
-            // Log keyboard shortcut violation
-            if (violationLogger) {
-                console.log('Calling violationLogger.logKeyboardShortcut() for copy/paste');
-                violationLogger.logKeyboardShortcut(keyDescription);
-            } else {
-                console.log('violationLogger is not available for copy/paste');
-            }
-            return false;
+        // Note: BrowserControlsContext handles Ctrl+C, Ctrl+V, Ctrl+X, Ctrl+A, Ctrl+F, Ctrl+P, Ctrl+S, Ctrl+U
+        // Skip those to avoid double warning decrements
+        if (e.ctrlKey && !e.shiftKey && !e.altKey && 
+            (e.key === 'c' || e.key === 'C' || e.key === 'v' || e.key === 'V' || e.key === 'x' || e.key === 'X' ||
+             e.key === 'a' || e.key === 'A' || e.key === 'f' || e.key === 'F' || e.key === 'p' || e.key === 'P' ||
+             e.key === 's' || e.key === 'S' || e.key === 'u' || e.key === 'U')) {
+            // Let BrowserControlsContext handle these shortcuts completely
+            return true; 
         }
         
         // Prevent Alt+Tab (though this is harder to catch)

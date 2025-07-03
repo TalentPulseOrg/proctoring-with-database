@@ -130,21 +130,15 @@ export const BrowserControlsProvider = ({ children }) => {
   useEffect(() => {
     if (!isTestActive) return;
 
-    document.addEventListener('fullscreenchange', handleFullscreenChange);
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('blur', handleWindowBlur);
-    document.addEventListener('keydown', handleEscapeKey);
-      document.addEventListener('copy', preventCopyPaste, true);
-      document.addEventListener('paste', preventCopyPaste, true);
-      document.addEventListener('cut', preventCopyPaste, true);
-      document.addEventListener('keydown', preventKeyboardShortcuts, true);
-      document.addEventListener('contextmenu', preventContextMenu, true);
+    // Note: fullscreenchange, visibilitychange, window blur, and escape key are handled by ScreenMonitorContext
+    // to avoid double warning decrements
+    document.addEventListener('copy', preventCopyPaste, true);
+    document.addEventListener('paste', preventCopyPaste, true);
+    document.addEventListener('cut', preventCopyPaste, true);
+    document.addEventListener('keydown', preventKeyboardShortcuts, true);
+    document.addEventListener('contextmenu', preventContextMenu, true);
     
     return () => {
-      document.removeEventListener('fullscreenchange', handleFullscreenChange);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('blur', handleWindowBlur);
-      document.removeEventListener('keydown', handleEscapeKey);
       document.removeEventListener('copy', preventCopyPaste, true);
       document.removeEventListener('paste', preventCopyPaste, true);
       document.removeEventListener('cut', preventCopyPaste, true);
@@ -153,10 +147,6 @@ export const BrowserControlsProvider = ({ children }) => {
     };
   }, [
     isTestActive, 
-    handleFullscreenChange,
-    handleVisibilityChange,
-    handleWindowBlur,
-    handleEscapeKey,
     preventCopyPaste, 
     preventKeyboardShortcuts, 
     preventContextMenu
