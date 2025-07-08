@@ -24,6 +24,7 @@ import DownloadIcon from "@mui/icons-material/Download";
 import MonitorIcon from "@mui/icons-material/Monitor";
 import ProctoringReport from "../ProctoringReport";
 import TestMonitoringViewer from "../TestMonitoringViewer";
+import { colors } from '../../styles/theme';
 
 const API_BASE_URL = "http://localhost:8000";
 
@@ -274,19 +275,19 @@ const CompletedTests = () => {
             </p>
           </div>
           <div className="flex space-x-3">
-            <button
+            <Button
               onClick={fetchCompletedTests}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+              style={{ background: colors.primary, color: '#fff', fontWeight: 600, borderRadius: 8 }}
             >
               Refresh
-            </button>
+            </Button>
             {tests.length > 0 && (
-              <button
+              <Button
                 onClick={handleDeleteAllTests}
-                className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
+                style={{ background: '#ef4444', color: '#fff', fontWeight: 600, borderRadius: 8 }}
               >
                 Clear All
-              </button>
+              </Button>
             )}
           </div>
         </div>
@@ -419,41 +420,41 @@ const CompletedTests = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex justify-end space-x-2">
-                        <button
+                        <IconButton
                           onClick={() => handleViewLogs(test)}
                           className="text-blue-600 hover:text-blue-900"
                           title="View Logs"
                         >
                           <VisibilityIcon />
-                        </button>
-                        <button
+                        </IconButton>
+                        <IconButton
                           onClick={() => handleViewReport(test)}
                           className="text-green-600 hover:text-green-900"
                           title="View Report"
                         >
                           <AssessmentIcon />
-                        </button>
-                        <button
+                        </IconButton>
+                        <IconButton
                           onClick={() => handleViewMonitoring(test)}
                           className="text-purple-600 hover:text-purple-900"
                           title="View Monitoring"
                         >
                           <MonitorIcon />
-                        </button>
-                        <button
+                        </IconButton>
+                        <IconButton
                           onClick={() => handleDownloadReport(test)}
                           className="text-gray-600 hover:text-gray-900"
                           title="Download Report"
                         >
                           <DownloadIcon />
-                        </button>
-                        <button
+                        </IconButton>
+                        <IconButton
                           onClick={() => handleDeleteTest(test.test_id)}
                           className="text-red-600 hover:text-red-900"
                           title="Delete Test"
                         >
                           <DeleteIcon />
-                        </button>
+                        </IconButton>
                       </div>
                     </td>
                   </tr>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getAllTests, getTestById, startTestSession, registerUser, createTest } from '../api/api';
+import { colors } from '../styles/theme';
 
 const TestForm = () => {
     const navigate = useNavigate();
@@ -243,112 +244,109 @@ const TestForm = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-100 py-6 flex flex-col justify-center sm:py-12">
-            <div className="relative py-3 sm:max-w-xl sm:mx-auto">
-                <div className="relative px-4 py-10 bg-white mx-8 md:mx-0 shadow rounded-3xl sm:p-10">
-                    <div className="max-w-md mx-auto">
-                        <div className="divide-y divide-gray-200">
-                            <div className="py-8 text-base leading-6 space-y-4 text-gray-700 sm:text-lg sm:leading-7">
-                                <h2 className="text-2xl font-bold mb-8 text-center text-gray-900">Test Registration Form</h2>
-                                
-                                {loading ? (
-                                    <div className="flex justify-center">
-                                        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500"></div>
-                                    </div>
-                                ) : (
-                                    <form onSubmit={handleSubmit} className="space-y-6">
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700">Full Name *</label>
-                                            <input
-                                                type="text"
-                                                name="name"
-                                                value={formData.name}
-                                                onChange={handleChange}
-                                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                                required
-                                            />
-                                        </div>
-
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700">Email *</label>
-                                            <input
-                                                type="email"
-                                                name="email"
-                                                value={formData.email}
-                                                onChange={handleChange}
-                                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                                required
-                                            />
-                                        </div>
-
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700">Test ID *</label>
-                                            <div className="relative">
-                                                <input
-                                                    type="text"
-                                                    name="testId"
-                                                    value={formData.testId}
-                                                    onChange={handleTestIdChange}
-                                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 pr-10"
-                                                    required
-                                                    placeholder="Enter test ID"
-                                                />
-                                                {searchingTest && (
-                                                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                                                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
-                                                    </div>
-                                                )}
-                                            </div>
-                                            {searchingTest && (
-                                                <p className="mt-1 text-xs text-blue-600">Searching for test...</p>
-                                            )}
-                                        </div>
-
-                                        {testDetails && (
-                                            <div className="bg-blue-50 p-4 rounded-lg">
-                                                <h3 className="text-sm font-medium text-blue-800">Test Details</h3>
-                                                <p className="mt-1 text-sm text-blue-700">
-                                                    Skill: {testDetails.skill}<br />
-                                                    Duration: {testDetails.duration} minutes<br />
-                                                    Questions: {testDetails.numQuestions}
-                                                </p>
-                                            </div>
-                                        )}
-
-                                        <div className="flex items-center">
-                                            <input
-                                                type="checkbox"
-                                                name="agreeToTerms"
-                                                checked={formData.agreeToTerms}
-                                                onChange={handleChange}
-                                                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                                            />
-                                            <label className="ml-2 block text-sm text-gray-900">
-                                                I agree to the terms and conditions of the test
-                                            </label>
-                                        </div>
-
-                                        {error && (
-                                            <div className="text-red-500 text-sm mt-2">
-                                                {error}
-                                            </div>
-                                        )}
-
-                                        <div className="pt-4">
-                                            <button
-                                                type="submit"
-                                                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                                            >
-                                                Proceed to System Check
-                                            </button>
-                                        </div>
-                                    </form>
-                                )}
+        <div className="w-full max-w-xl mx-auto bg-white rounded-2xl shadow-lg p-8">
+            <h2 className="text-2xl font-bold mb-8 text-center text-gray-900">Test Registration</h2>
+            {error && (
+                <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg text-center">{error}</div>
+            )}
+            {loading ? (
+                <div className="flex justify-center">
+                    <div className="animate-spin rounded-full h-10 w-10 border-b-2" style={{ borderColor: colors.primary }}></div>
+                </div>
+            ) : (
+                <form onSubmit={handleSubmit} className="space-y-8">
+                    {/* User Info Section */}
+                    <div>
+                        <h3 className="text-lg font-semibold mb-4 text-teal-700">Your Information</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700">Name *</label>
+                                <input
+                                    type="text"
+                                    name="name"
+                                    value={formData.name}
+                                    onChange={handleChange}
+                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500"
+                                    required
+                                    placeholder="Enter your name"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700">Email *</label>
+                                <input
+                                    type="email"
+                                    name="email"
+                                    value={formData.email}
+                                    onChange={handleChange}
+                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500"
+                                    required
+                                    placeholder="Enter your email"
+                                />
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
+                    {/* Test Info Section */}
+                    <div>
+                        <h3 className="text-lg font-semibold mb-4 text-teal-700">Test Information</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700">Test ID *</label>
+                                <input
+                                    type="text"
+                                    name="testId"
+                                    value={formData.testId}
+                                    onChange={handleTestIdChange}
+                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500"
+                                    required
+                                    placeholder="Enter test ID"
+                                />
+                            </div>
+                            <div className="flex items-end">
+                                {searchingTest && (
+                                    <span className="text-xs text-teal-600">Searching for test...</span>
+                                )}
+                            </div>
+                        </div>
+                        {testDetails && (
+                            <div className="mt-4 bg-teal-50 border-l-4 border-teal-400 p-4 rounded">
+                                <h4 className="font-semibold text-teal-700 mb-2">Test Details</h4>
+                                <ul className="text-sm text-gray-700 space-y-1">
+                                    <li><strong>Skill:</strong> {testDetails.skill}</li>
+                                    <li><strong>Duration:</strong> {testDetails.duration} minutes</li>
+                                    <li><strong>Questions:</strong> {testDetails.numQuestions}</li>
+                                    <li><strong>Created At:</strong> {testDetails.createdAt ? new Date(testDetails.createdAt).toLocaleString() : 'N/A'}</li>
+                                    <li><strong>Created By:</strong> {testDetails.createdBy || 'N/A'}</li>
+                                </ul>
+                            </div>
+                        )}
+                    </div>
+                    {/* Terms Section */}
+                    <div className="flex items-center">
+                        <input
+                            id="agreeToTerms"
+                            name="agreeToTerms"
+                            type="checkbox"
+                            checked={formData.agreeToTerms}
+                            onChange={handleChange}
+                            className="h-4 w-4 text-teal-600 focus:ring-teal-500 border-gray-300 rounded"
+                            required
+                        />
+                        <label htmlFor="agreeToTerms" className="ml-2 block text-sm text-gray-900">
+                            I agree to the terms and conditions
+                        </label>
+                    </div>
+                    <div className="pt-4">
+                        <button
+                            type="submit"
+                            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium"
+                            style={{ background: colors.primary, color: '#fff', fontWeight: 600, borderRadius: 8 }}
+                            disabled={loading}
+                        >
+                            {loading ? 'Submitting...' : 'Start Test'}
+                        </button>
+                    </div>
+                </form>
+            )}
         </div>
     );
 };

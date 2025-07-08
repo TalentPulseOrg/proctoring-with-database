@@ -32,6 +32,7 @@
     "react-icons": "^5.5.0",
     "react-router-dom": "^6.17.0",
     "react-syntax-highlighter": "^15.6.1",
+    "recharts": "^3.0.2",
     "simple-peer": "^9.11.1",
     "tailwindcss": "^4.1.10",
     "webgazer": "^3.3.0"

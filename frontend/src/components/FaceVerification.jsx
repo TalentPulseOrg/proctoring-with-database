@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Box, Button, Typography, Paper, Alert, CircularProgress } from '@mui/material';
 import { uploadIdPhoto, verifyFace, getVerificationStatus } from '../api/api';
 import { useAuth } from '../contexts/AuthContext';
+import { colors, fonts } from '../styles/theme';
 
 const FaceVerification = ({ onVerificationComplete }) => {
   const [idPhotoUploaded, setIdPhotoUploaded] = useState(false);
@@ -154,8 +155,8 @@ const FaceVerification = ({ onVerificationComplete }) => {
   };
 
   return (
-    <Paper elevation={3} sx={{ p: 3, maxWidth: 700, mx: 'auto', my: 4 }}>
-      <Typography variant="h5" gutterBottom>
+    <Paper elevation={3} sx={{ p: 3, maxWidth: 700, mx: 'auto', my: 4, bgcolor: colors.cardBg, fontFamily: fonts.main, boxShadow: `0 4px 24px ${colors.cardShadow}` }}>
+      <Typography variant="h5" gutterBottom sx={{ color: colors.primaryDark, fontFamily: fonts.heading }}>
         Face Verification
       </Typography>
       
@@ -193,21 +194,31 @@ const FaceVerification = ({ onVerificationComplete }) => {
               />
             </Box>
             <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, mt: 2 }}>
-              <Button 
-                variant="outlined" 
-                color="error" 
+              <button
+                style={{ background: '#ef4444', color: '#fff', borderRadius: 6, padding: '0.5rem 1.5rem', fontWeight: 500, border: 'none', fontFamily: fonts.main, boxShadow: '0 2px 8px rgba(239,68,68,0.08)' }}
                 onClick={stopCamera}
               >
                 Cancel
-              </Button>
-              <Button 
-                variant="contained" 
-                color="primary" 
+              </button>
+              <button
+                style={{
+                  background: colors.buttonBg,
+                  color: colors.buttonText,
+                  borderRadius: 6,
+                  padding: '0.5rem 1.5rem',
+                  fontWeight: 500,
+                  border: 'none',
+                  fontFamily: fonts.main,
+                  boxShadow: `0 2px 8px ${colors.cardShadow}`,
+                  outline: 'none',
+                }}
                 onClick={idPhotoUploaded ? handleVerifyFace : handleUploadIdPhoto}
                 disabled={loading}
+                onFocus={e => (e.target.style.boxShadow = `0 0 0 3px ${colors.primary}55`)}
+                onBlur={e => (e.target.style.boxShadow = `0 2px 8px ${colors.cardShadow}`)}
               >
                 {idPhotoUploaded ? 'Verify Face' : 'Capture ID Photo'}
-              </Button>
+              </button>
             </Box>
           </>
         ) : (
@@ -223,14 +234,25 @@ const FaceVerification = ({ onVerificationComplete }) => {
                     ? 'Please verify your face to continue'
                     : 'Please upload your ID photo for verification'}
                 </Typography>
-                <Button 
-                  variant="contained" 
-                  color="primary" 
+                <button
+                  style={{
+                    background: colors.buttonBg,
+                    color: colors.buttonText,
+                    borderRadius: 6,
+                    padding: '0.5rem 1.5rem',
+                    fontWeight: 500,
+                    border: 'none',
+                    fontFamily: fonts.main,
+                    boxShadow: `0 2px 8px ${colors.cardShadow}`,
+                    outline: 'none',
+                  }}
                   onClick={startCamera}
                   disabled={loading}
+                  onFocus={e => (e.target.style.boxShadow = `0 0 0 3px ${colors.primary}55`)}
+                  onBlur={e => (e.target.style.boxShadow = `0 2px 8px ${colors.cardShadow}`)}
                 >
                   {idPhotoUploaded ? 'Start Face Verification' : 'Upload ID Photo'}
-                </Button>
+                </button>
               </>
             )}
           </Box>

@@ -27,6 +27,7 @@ import { WarningProvider } from "../contexts/WarningContext";
 import useAudioMonitor from '../hooks/useAudioMonitor';
 import { API_BASE_URL } from '../config';
 import { useViolationLogger } from '../hooks/useViolationLogger';
+import { colors } from '../styles/theme';
 
 export default function TestInterface() {
   const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -842,7 +843,7 @@ export default function TestInterface() {
           style={{
             padding: "12px 24px",
             fontSize: "16px",
-            backgroundColor: "#4CAF50",
+            background: colors.primary,
             color: "white",
             border: "none",
             borderRadius: "4px",
@@ -947,7 +948,7 @@ export default function TestInterface() {
 
               <button
                 onClick={handleStartTest}
-                className="w-full bg-blue-600 text-white py-3 rounded-md hover:bg-blue-700 transition-colors"
+                className="w-full bg-teal-500 text-white py-3 rounded-md hover:bg-teal-700 transition-colors"
               >
                 Start Test
               </button>
@@ -955,314 +956,335 @@ export default function TestInterface() {
           )}
         </div>
       ) : (
-        <div className="max-w-5xl mx-auto p-4">
-          {/* Fullscreen Re-entry Button - Only shown when not in fullscreen mode */}
-          {isTestStarted && !isFullScreen && !showWarningExhaustionDialog && (
-            <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[9999]">
-              <div className="bg-white p-6 rounded-lg shadow-lg max-w-md text-center">
-                <div className="text-red-600 text-5xl mb-4">⚠️</div>
-                <h2 className="text-2xl font-bold mb-4">Fullscreen Required</h2>
-                <p className="mb-6">
-                  For test security, you must remain in fullscreen mode. Please
-                  click the button below to continue your test.
-                </p>
-                <button
-                  onClick={handleReenterFullscreen}
-                  className="bg-blue-600 text-white px-6 py-3 rounded-md shadow-md hover:bg-blue-700 transition-colors text-lg font-medium"
-                >
-                  Re-enter Fullscreen Mode
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Warning Display */}
-          {warningCount > 0 && (
-            <div className="fixed top-4 right-4 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded shadow-lg z-50">
-              <div className="flex items-center">
-                <div className="py-1">
-                  <svg
-                    className="h-6 w-6 text-yellow-500 mr-4"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                    />
-                  </svg>
-                </div>
+        <div className="min-h-screen bg-gray-50 flex flex-col lg:flex-row">
+          {/* Sidebar accent for visual interest */}
+          <div className="hidden lg:block w-64 bg-gradient-to-b from-teal-500 to-teal-700 rounded-tr-3xl rounded-br-3xl shadow-lg mr-8"></div>
+          <div className="relative w-full h-full">
+            <div className="absolute inset-0 z-0" style={{ background: 'radial-gradient(circle at 70% 20%, #14b8a622 0%, #fff 80%)' }}></div>
+            <div className="relative z-10 flex flex-col items-center justify-center p-6">
+              {/* Test Info Header Card */}
+              <div className="w-full max-w-3xl bg-white rounded-2xl shadow-lg p-6 mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div>
-                  <p className="font-bold">Warnings</p>
-                  <p className="text-sm">Remaining: {warningCount}/{MAX_WARNINGS}</p>
+                  <h2 className="text-2xl font-bold text-teal-700 mb-2">{testData?.skill || 'Test'}</h2>
+                  <div className="flex flex-wrap gap-4 text-gray-700">
+                    <span><strong>Duration:</strong> {testData?.duration} min</span>
+                    <span><strong>Questions:</strong> {testData?.questions?.length}</span>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <span className="block text-sm text-gray-500">Candidate:</span>
+                  <span className="font-semibold text-gray-800">{testData?.userName || user?.name}</span>
                 </div>
               </div>
-            </div>
-          )}
-
-          {/* Warning Exhaustion Dialog */}
-          {showWarningExhaustionDialog && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]">
-              <div className="bg-white p-8 rounded-lg shadow-xl max-w-md w-full mx-4">
-                <h2 className="text-2xl font-bold text-red-600 mb-4">
-                  Test Termination Notice
-                </h2>
-                <p className="text-gray-700 mb-4">
-                  You have exhausted all your warnings. The test will be
-                  automatically submitted.
-                </p>
-                <p className="text-gray-600 text-sm mb-6">
-                  Your answers will be saved and submitted. You will be
-                  redirected to the results page.
-                </p>
-                <div className="flex justify-center">
-                  <button
-                    onClick={() => {
-                      setShowWarningExhaustionDialog(false);
-                      handleSubmit("warnings_exhausted");
-                    }}
-                    className="bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700 transition-colors"
-                  >
-                    Submit Test Now
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Audio Suspicious Toast */}
-          {audioToast && (
-            <div className="fixed top-20 right-1/2 translate-x-1/2 z-50">
-              <div className="bg-red-100 text-red-700 px-4 py-2 rounded shadow text-sm animate-pulse">
-                {audioToast}
-              </div>
-            </div>
-          )}
-
-          {/* Header with test info */}
-          <div className="flex justify-between items-center mb-6 flex-wrap gap-2">
-            <div className="bg-white p-3 rounded-md shadow-sm">
-              <p className="font-bold">
-                Question {currentQuestion + 1} of {testData?.questions?.length}
-              </p>
-            </div>
-
-            <div className="bg-white p-3 rounded-md shadow-sm">
-              <p className="font-bold flex items-center">
-                Time Left: {Math.floor(timeLeft / 60)}:
-                {(timeLeft % 60).toString().padStart(2, "0")}
-              </p>
-            </div>
-          </div>
-
-          {/* Main content */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Left column - Questions */}
-            <div className="lg:col-span-2">
-              {/* Question and Answer Area */}
-              <div className="bg-white p-6 rounded-lg shadow-md mb-6">
-                {testData?.questions && (
-                  <>
-                    <h2 className="text-xl font-bold mb-6">
-                      {testData.questions[currentQuestion].question ||
-                        testData.questions[currentQuestion].question_text}
-                    </h2>
-
-                    {/* Display code block if question contains code */}
-                    {testData.questions[currentQuestion].code && (
-                      <CodeBlock code={testData.questions[currentQuestion].code} />
-                    )}
-
-                    <div className="space-y-4">
-                      {(testData.questions[currentQuestion].options || []).map(
-                        (option, index) => {
-                          // Handle both object options and string options
-                          let optionText =
-                            typeof option === "string"
-                              ? option
-                              : option.text || option.option_text || option;
-                          const optionId =
-                            typeof option === "string" ? index : (option.id || index);
-
-                          // Detect code in option (either as a separate field or as a code block in text)
-                          let codeBlock = null;
-                          let nonCodeText = optionText;
-                          if (typeof option === "object" && option.code) {
-                            codeBlock = option.code;
-                            nonCodeText = optionText.replace(option.code, "");
-                          } else if (typeof optionText === "string" && optionText.includes("```")) {
-                            // Extract code block from markdown-style triple backticks
-                            const codeMatch = optionText.match(/```([\s\S]*?)```/);
-                            if (codeMatch) {
-                              codeBlock = codeMatch[1];
-                              nonCodeText = optionText.replace(/```[\s\S]*?```/, "");
-                            }
-                          }
-
-                          return (
-                            <div
-                              key={optionId || index}
-                              className={`p-4 border rounded-md cursor-pointer transition-colors ${
-                                answers[currentQuestion] === optionId
-                                  ? "bg-blue-100 border-blue-500 font-medium"
-                                  : "hover:bg-gray-50 border-gray-200"
-                              }`}
-                              onClick={() => handleAnswer(currentQuestion, optionId)}
-                            >
-                              <span className="inline-block w-6 h-6 bg-gray-100 rounded-full text-center mr-3 text-gray-700">
-                                {String.fromCharCode(65 + index)}
-                              </span>
-                              {/* Render non-code text if present */}
-                              {nonCodeText && <span>{nonCodeText.trim()} </span>}
-                              {/* Render code block if present */}
-                              {codeBlock && <CodeBlock code={codeBlock} />}
-                            </div>
-                          );
-                        }
-                      )}
-                    </div>
-
-                    <div className="flex justify-between mt-8">
-                      <button
-                        disabled={currentQuestion === 0}
-                        onClick={() => setCurrentQuestion((prev) => prev - 1)}
-                        className={`px-6 py-2 rounded-md transition-colors ${
-                          currentQuestion === 0
-                            ? "bg-gray-300 cursor-not-allowed"
-                            : "bg-blue-600 text-white hover:bg-blue-700"
-                        }`}
-                      >
-                        Previous
-                      </button>
-
-                      {currentQuestion < testData.questions.length - 1 ? (
-                        <button
-                          onClick={() => setCurrentQuestion((prev) => prev + 1)}
-                          className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-                        >
-                          Next
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => handleSubmit("manual")}
-                          disabled={isSubmitting}
-                          className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
-                        >
-                          {isSubmitting ? "Submitting..." : "Submit Test"}
-                        </button>
-                      )}
-                    </div>
-                  </>
-                )}
-              </div>
-
-              {/* Question Navigation */}
-              <div className="bg-white p-4 rounded-lg shadow-md">
-                <div className="grid grid-cols-10 gap-2">
-                  {testData?.questions?.map((_, index) => (
+              {/* Fullscreen Re-entry Button - Only shown when not in fullscreen mode */}
+              {isTestStarted && !isFullScreen && !showWarningExhaustionDialog && (
+                <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[9999]">
+                  <div className="bg-white p-6 rounded-lg shadow-lg max-w-md text-center">
+                    <div className="text-red-600 text-5xl mb-4">⚠️</div>
+                    <h2 className="text-2xl font-bold mb-4">Fullscreen Required</h2>
+                    <p className="mb-6">
+                      For test security, you must remain in fullscreen mode. Please
+                      click the button below to continue your test.
+                    </p>
                     <button
-                      key={index}
-                      onClick={() => setCurrentQuestion(index)}
-                      className={`p-2 rounded-md transition-colors ${
-                        currentQuestion === index
-                          ? "bg-blue-600 text-white font-bold"
-                          : answers[index] !== undefined
-                          ? "bg-green-100 border border-green-500 font-medium"
-                          : "bg-gray-100 hover:bg-gray-200"
-                      }`}
+                      onClick={handleReenterFullscreen}
+                      className="bg-teal-500 text-white px-6 py-3 rounded-md shadow-md hover:bg-teal-700 transition-colors text-lg font-medium"
                     >
-                      {index + 1}
+                      Re-enter Fullscreen Mode
                     </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Right column - Monitoring */}
-            <div className="lg:col-span-1">
-              {/* Monitoring Area */}
-              <div className="bg-white p-4 rounded-lg shadow-md mb-6">
-                <h3 className="font-bold mb-3 text-lg border-b pb-2">
-                  Proctoring Monitor
-                </h3>
-
-                {/* Live Webcam Feed */}
-                <div className="mt-4 mb-4">
-                  <h4 className="text-sm font-semibold mb-2 text-gray-700">
-                    Webcam Feed
-                  </h4>
-                  {sessionId && (
-                    <WebcamFeed
-                      sessionId={sessionId}
-                      userId={user?.id || testData?.user_id}
-                      isActive={isTestStarted}
-                    />
-                  )}
-                </div>
-
-                {/* Audio Monitoring Meter */}
-                <div className="mt-4 mb-2">
-                  <h4 className="text-sm font-semibold mb-2 text-gray-700 flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor"><path d="M9 18a1 1 0 102 0v-1.035A7.001 7.001 0 0017 10V8a7 7 0 10-14 0v2a7.001 7.001 0 006 6.965V18z" /></svg>
-                    Audio Monitor
-                  </h4>
-                  <div className="flex items-center gap-2">
-                    <div className="w-24 h-3 bg-gray-200 rounded-full overflow-hidden">
-                      <div className={`h-3 rounded-full transition-all duration-200 ${audioMeter.volume > 2 ? 'bg-red-500' : audioMeter.volume > 1.2 ? 'bg-yellow-400' : 'bg-green-500'}`} style={{ width: `${Math.min(audioMeter.volume * 33, 100)}%` }}></div>
-                    </div>
-                    <span className="text-xs font-mono w-10 text-right">{audioMeter.volume.toFixed(2)}x</span>
-                  </div>
-                  <div className="flex justify-between text-xs mt-1 text-gray-600">
-                    <span>Label: <span className={`font-bold ${['Speech','Music','Typing'].includes(audioMeter.label) ? 'text-red-600' : 'text-gray-800'}`}>{audioMeter.label}</span></span>
-                    <span>Conf: {audioMeter.confidence.toFixed(2)}</span>
                   </div>
                 </div>
+              )}
 
-                {/* Monitoring tools in a grid */}
-                <div className="grid grid-cols-1 gap-4 mt-4">
-                  {/* Test Progress */}
-                  <div className="mt-4 p-3 bg-blue-50 rounded-md border border-blue-100">
-                    <h4 className="text-sm font-semibold mb-2 text-gray-700 flex items-center">
+              {/* Warning Display */}
+              {warningCount > 0 && (
+                <div className="fixed top-4 right-4 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded shadow-lg z-50">
+                  <div className="flex items-center">
+                    <div className="py-1">
                       <svg
+                        className="h-6 w-6 text-yellow-500 mr-4"
                         xmlns="http://www.w3.org/2000/svg"
-                        className="h-4 w-4 mr-1"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
                       >
                         <path
-                          fillRule="evenodd"
-                          d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
-                          clipRule="evenodd"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
                         />
                       </svg>
-                      Test Progress
-                    </h4>
-                    <div className="w-full bg-gray-200 rounded-full h-2.5">
-                      <div
-                        className="bg-blue-600 h-2.5 rounded-full"
-                        style={{
-                          width: `${
-                            (Object.keys(answers).length /
-                              testData?.questions?.length) *
-                            100
-                          }%`,
-                        }}
-                      ></div>
                     </div>
-                    <div className="flex justify-between mt-2 text-xs text-gray-600">
-                      <span>
-                        Answered: {Object.keys(answers).length}/
-                        {testData?.questions?.length}
-                      </span>
-                      <span>
-                        Remaining:{" "}
-                        {testData?.questions?.length -
-                          Object.keys(answers).length}
-                      </span>
+                    <div>
+                      <p className="font-bold">Warnings</p>
+                      <p className="text-sm">Remaining: {warningCount}/{MAX_WARNINGS}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Warning Exhaustion Dialog */}
+              {showWarningExhaustionDialog && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]">
+                  <div className="bg-white p-8 rounded-lg shadow-xl max-w-md w-full mx-4">
+                    <h2 className="text-2xl font-bold text-red-600 mb-4">
+                      Test Termination Notice
+                    </h2>
+                    <p className="text-gray-700 mb-4">
+                      You have exhausted all your warnings. The test will be
+                      automatically submitted.
+                    </p>
+                    <p className="text-gray-600 text-sm mb-6">
+                      Your answers will be saved and submitted. You will be
+                      redirected to the results page.
+                    </p>
+                    <div className="flex justify-center">
+                      <button
+                        onClick={() => {
+                          setShowWarningExhaustionDialog(false);
+                          handleSubmit("warnings_exhausted");
+                        }}
+                        className="bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700 transition-colors"
+                      >
+                        Submit Test Now
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Audio Suspicious Toast */}
+              {audioToast && (
+                <div className="fixed top-20 right-1/2 translate-x-1/2 z-50">
+                  <div className="bg-red-100 text-red-700 px-4 py-2 rounded shadow text-sm animate-pulse">
+                    {audioToast}
+                  </div>
+                </div>
+              )}
+
+              {/* Header with test info */}
+              <div className="flex justify-between items-center mb-6 flex-wrap gap-2">
+                <div className="bg-white p-3 rounded-md shadow-sm">
+                  <p className="font-bold">
+                    Question {currentQuestion + 1} of {testData?.questions?.length}
+                  </p>
+                </div>
+
+                <div className="bg-white p-3 rounded-md shadow-sm">
+                  <p className="font-bold flex items-center">
+                    Time Left: {Math.floor(timeLeft / 60)}:
+                    {(timeLeft % 60).toString().padStart(2, "0")}
+                  </p>
+                </div>
+              </div>
+
+              {/* Main content */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Left column - Questions */}
+                <div className="lg:col-span-2">
+                  {/* Question and Answer Area */}
+                  <div className="bg-white p-6 rounded-lg shadow-md mb-6">
+                    {testData?.questions && (
+                      <>
+                        <h2 className="text-xl font-bold mb-6">
+                          {testData.questions[currentQuestion].question ||
+                            testData.questions[currentQuestion].question_text}
+                        </h2>
+
+                        {/* Display code block if question contains code */}
+                        {testData.questions[currentQuestion].code && (
+                          <CodeBlock code={testData.questions[currentQuestion].code} />
+                        )}
+
+                        <div className="space-y-4">
+                          {(testData.questions[currentQuestion].options || []).map(
+                            (option, index) => {
+                              // Handle both object options and string options
+                              let optionText =
+                                typeof option === "string"
+                                  ? option
+                                  : option.text || option.option_text || option;
+                              const optionId =
+                                typeof option === "string" ? index : (option.id || index);
+
+                              // Detect code in option (either as a separate field or as a code block in text)
+                              let codeBlock = null;
+                              let nonCodeText = optionText;
+                              if (typeof option === "object" && option.code) {
+                                codeBlock = option.code;
+                                nonCodeText = optionText.replace(option.code, "");
+                              } else if (typeof optionText === "string" && optionText.includes("```")) {
+                                // Extract code block from markdown-style triple backticks
+                                const codeMatch = optionText.match(/```([\s\S]*?)```/);
+                                if (codeMatch) {
+                                  codeBlock = codeMatch[1];
+                                  nonCodeText = optionText.replace(/```[\s\S]*?```/, "");
+                                }
+                              }
+
+                              return (
+                                <div
+                                  key={optionId || index}
+                                  className={`p-4 border rounded-md cursor-pointer transition-colors ${
+                                    answers[currentQuestion] === optionId
+                                      ? "bg-teal-100 border-teal-500 font-medium"
+                                      : "hover:bg-gray-50 border-gray-200"
+                                  }`}
+                                  onClick={() => handleAnswer(currentQuestion, optionId)}
+                                >
+                                  <span className="inline-block w-6 h-6 bg-gray-100 rounded-full text-center mr-3 text-gray-700">
+                                    {String.fromCharCode(65 + index)}
+                                  </span>
+                                  {/* Render non-code text if present */}
+                                  {nonCodeText && <span>{nonCodeText.trim()} </span>}
+                                  {/* Render code block if present */}
+                                  {codeBlock && <CodeBlock code={codeBlock} />}
+                                </div>
+                              );
+                            }
+                          )}
+                        </div>
+
+                        <div className="flex justify-between mt-8">
+                          <button
+                            disabled={currentQuestion === 0}
+                            onClick={() => setCurrentQuestion((prev) => prev - 1)}
+                            className={`px-6 py-2 rounded-md transition-colors ${
+                              currentQuestion === 0
+                                ? "bg-gray-300 cursor-not-allowed"
+                                : "bg-teal-600 text-white hover:bg-teal-700"
+                            }`}
+                          >
+                            Previous
+                          </button>
+
+                          {currentQuestion < testData.questions.length - 1 ? (
+                            <button
+                              onClick={() => setCurrentQuestion((prev) => prev + 1)}
+                              className="px-6 py-2 bg-teal-600 text-white rounded-md hover:bg-teal-700 transition-colors"
+                            >
+                              Next
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => handleSubmit("manual")}
+                              disabled={isSubmitting}
+                              className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+                            >
+                              {isSubmitting ? "Submitting..." : "Submit Test"}
+                            </button>
+                          )}
+                        </div>
+                      </>
+                    )}
+                  </div>
+
+                  {/* Question Navigation */}
+                  <div className="bg-white p-4 rounded-lg shadow-md">
+                    <div className="grid grid-cols-10 gap-2">
+                      {testData?.questions?.map((_, index) => (
+                        <button
+                          key={index}
+                          onClick={() => setCurrentQuestion(index)}
+                          className={`p-2 rounded-md transition-colors ${
+                            currentQuestion === index
+                              ? "bg-teal-600 text-white font-bold"
+                              : answers[index] !== undefined
+                              ? "bg-green-100 border border-green-500 font-medium"
+                              : "bg-gray-100 hover:bg-gray-200"
+                          }`}
+                        >
+                          {index + 1}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right column - Monitoring */}
+                <div className="lg:col-span-1">
+                  {/* Monitoring Area */}
+                  <div className="bg-white p-4 rounded-lg shadow-md mb-6">
+                    <h3 className="font-bold mb-3 text-lg border-b pb-2">
+                      Proctoring Monitor
+                    </h3>
+
+                    {/* Live Webcam Feed */}
+                    <div className="mt-4 mb-4">
+                      <h4 className="text-sm font-semibold mb-2 text-gray-700">
+                        Webcam Feed
+                      </h4>
+                      {sessionId && (
+                        <WebcamFeed
+                          sessionId={sessionId}
+                          userId={user?.id || testData?.user_id}
+                          isActive={isTestStarted}
+                        />
+                      )}
+                    </div>
+
+                    {/* Audio Monitoring Meter */}
+                    <div className="mt-4 mb-2">
+                      <h4 className="text-sm font-semibold mb-2 text-gray-700 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor"><path d="M9 18a1 1 0 102 0v-1.035A7.001 7.001 0 0017 10V8a7 7 0 10-14 0v2a7.001 7.001 0 006 6.965V18z" /></svg>
+                        Audio Monitor
+                      </h4>
+                      <div className="flex items-center gap-2">
+                        <div className="w-24 h-3 bg-gray-200 rounded-full overflow-hidden">
+                          <div className={`h-3 rounded-full transition-all duration-200 ${audioMeter.volume > 2 ? 'bg-red-500' : audioMeter.volume > 1.2 ? 'bg-yellow-400' : 'bg-green-500'}`} style={{ width: `${Math.min(audioMeter.volume * 33, 100)}%` }}></div>
+                        </div>
+                        <span className="text-xs font-mono w-10 text-right">{audioMeter.volume.toFixed(2)}x</span>
+                      </div>
+                      <div className="flex justify-between text-xs mt-1 text-gray-600">
+                        <span>Label: <span className={`font-bold ${['Speech','Music','Typing'].includes(audioMeter.label) ? 'text-red-600' : 'text-gray-800'}`}>{audioMeter.label}</span></span>
+                        <span>Conf: {audioMeter.confidence.toFixed(2)}</span>
+                      </div>
+                    </div>
+
+                    {/* Monitoring tools in a grid */}
+                    <div className="grid grid-cols-1 gap-4 mt-4">
+                      {/* Test Progress */}
+                      <div className="mt-4 p-3 bg-teal-50 rounded-md border border-teal-100">
+                        <h4 className="text-sm font-semibold mb-2 text-gray-700 flex items-center">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-4 w-4 mr-1"
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                          Test Progress
+                        </h4>
+                        <div className="w-full bg-gray-200 rounded-full h-2.5">
+                          <div
+                            className="bg-teal-600 h-2.5 rounded-full"
+                            style={{
+                              width: `${
+                                (Object.keys(answers).length /
+                                  testData?.questions?.length) *
+                                100
+                              }%`,
+                            }}
+                          ></div>
+                        </div>
+                        <div className="flex justify-between mt-2 text-xs text-gray-600">
+                          <span>
+                            Answered: {Object.keys(answers).length}/
+                            {testData?.questions?.length}
+                          </span>
+                          <span>
+                            Remaining:{" "}
+                            {testData?.questions?.length -
+                              Object.keys(answers).length}
+                          </span>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>

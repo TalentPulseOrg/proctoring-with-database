@@ -18,6 +18,7 @@ import TimelineSeparator from '@mui/lab/TimelineSeparator';
 import TimelineConnector from '@mui/lab/TimelineConnector';
 import TimelineContent from '@mui/lab/TimelineContent';
 import TimelineDot from '@mui/lab/TimelineDot';
+import AppLayout from '../layouts/AppLayout';
 
 const ProctoringReport = ({ sessionId, candidateName }) => {
   const [report, setReport] = useState(null);
@@ -128,86 +129,88 @@ const ProctoringReport = ({ sessionId, candidateName }) => {
   }
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Card>
-        <CardContent>
-          <Typography variant="h4" gutterBottom>
-            Proctoring Summary Report
-          </Typography>
-          
-          <Grid container spacing={3}>
-            <Grid item xs={12} md={6}>
-              <Typography variant="h6" gutterBottom>
-                Session Information
-              </Typography>
-              <Typography>
-                Candidate: {candidateName}
-              </Typography>
-              <Typography>
-                Date: {format(new Date(report.start_time), 'PPP')}
-              </Typography>
-              <Typography>
-                Duration: {report.session_duration_minutes.toFixed(1)} minutes
-              </Typography>
-              <Typography variant="h6" sx={{ mt: 2 }}>
-                Overall Environment Rating: {report.environment_rating}
-              </Typography>
-            </Grid>
+    <AppLayout>
+      <Box sx={{ p: 3 }}>
+        <Card>
+          <CardContent>
+            <Typography variant="h4" gutterBottom>
+              Proctoring Summary Report
+            </Typography>
             
-            <Grid item xs={12} md={6}>
-              <Typography variant="h6" gutterBottom>
-                Key Metrics
-              </Typography>
-              <Grid container spacing={2}>
-                <Grid item xs={6}>
-                  <Typography>Tab Switches: {report.metrics.tab_switches}</Typography>
-                  <Typography>Multiple Faces: {report.metrics.multiple_faces}</Typography>
+            <Grid container spacing={3}>
+              <Grid item xs={12} md={6}>
+                <Typography variant="h6" gutterBottom>
+                  Session Information
+                </Typography>
+                <Typography>
+                  Candidate: {candidateName}
+                </Typography>
+                <Typography>
+                  Date: {format(new Date(report.start_time), 'PPP')}
+                </Typography>
+                <Typography>
+                  Duration: {report.session_duration_minutes.toFixed(1)} minutes
+                </Typography>
+                <Typography variant="h6" sx={{ mt: 2 }}>
+                  Overall Environment Rating: {report.environment_rating}
+                </Typography>
+              </Grid>
+              
+              <Grid item xs={12} md={6}>
+                <Typography variant="h6" gutterBottom>
+                  Key Metrics
+                </Typography>
+                <Grid container spacing={2}>
+                  <Grid item xs={6}>
+                    <Typography>Tab Switches: {report.metrics.tab_switches}</Typography>
+                    <Typography>Multiple Faces: {report.metrics.multiple_faces}</Typography>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Typography>Poor Lighting: {report.metrics.poor_lighting}</Typography>
+                    <Typography>Total Violations: {report.metrics.total_violations}</Typography>
+                  </Grid>
                 </Grid>
-                <Grid item xs={6}>
-                  <Typography>Poor Lighting: {report.metrics.poor_lighting}</Typography>
-                  <Typography>Total Violations: {report.metrics.total_violations}</Typography>
-                </Grid>
+              </Grid>
+              
+              <Grid item xs={12}>
+                <Typography variant="h6" gutterBottom>
+                  Event Timeline
+                </Typography>
+                <Timeline>
+                  {report.timeline.map((event, index) => (
+                    <TimelineItem key={index}>
+                      <TimelineSeparator>
+                        <TimelineDot color="primary" />
+                        {index < report.timeline.length - 1 && <TimelineConnector />}
+                      </TimelineSeparator>
+                      <TimelineContent>
+                        <Typography variant="subtitle2">
+                          {format(new Date(event.timestamp), 'HH:mm:ss')}
+                        </Typography>
+                        <Typography>{event.event_type}</Typography>
+                        <Typography variant="body2" color="textSecondary">
+                          {JSON.stringify(event.details)}
+                        </Typography>
+                      </TimelineContent>
+                    </TimelineItem>
+                  ))}
+                </Timeline>
               </Grid>
             </Grid>
             
-            <Grid item xs={12}>
-              <Typography variant="h6" gutterBottom>
-                Event Timeline
-              </Typography>
-              <Timeline>
-                {report.timeline.map((event, index) => (
-                  <TimelineItem key={index}>
-                    <TimelineSeparator>
-                      <TimelineDot color="primary" />
-                      {index < report.timeline.length - 1 && <TimelineConnector />}
-                    </TimelineSeparator>
-                    <TimelineContent>
-                      <Typography variant="subtitle2">
-                        {format(new Date(event.timestamp), 'HH:mm:ss')}
-                      </Typography>
-                      <Typography>{event.event_type}</Typography>
-                      <Typography variant="body2" color="textSecondary">
-                        {JSON.stringify(event.details)}
-                      </Typography>
-                    </TimelineContent>
-                  </TimelineItem>
-                ))}
-              </Timeline>
-            </Grid>
-          </Grid>
-          
-          <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={downloadPDF}
-            >
-              Download PDF Report
-            </Button>
-          </Box>
-        </CardContent>
-      </Card>
-    </Box>
+            <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={downloadPDF}
+              >
+                Download PDF Report
+              </Button>
+            </Box>
+          </CardContent>
+        </Card>
+      </Box>
+    </AppLayout>
   );
 };
 

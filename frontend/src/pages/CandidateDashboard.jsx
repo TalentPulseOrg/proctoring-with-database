@@ -8,6 +8,7 @@ import WebcamMonitor from "../components/WebcamMonitor";
 import LogoutIcon from '@mui/icons-material/Logout';
 import axios from 'axios';
 import { API_BASE_URL } from '../config';
+import { colors, fonts } from '../styles/theme';
 
 export default function CandidateDashboard() {
   const [testData, setTestData] = useState(null);
@@ -89,19 +90,30 @@ export default function CandidateDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <header className="bg-white shadow">
+    <div style={{ minHeight: '100vh', background: '#f8fafc', fontFamily: fonts.main }}>
+      {/* Themed Header */}
+      <header style={{
+        background: colors.sidebarBg,
+        color: '#fff',
+        boxShadow: '0 2px 8px rgba(20,184,166,0.10)',
+      }}>
         <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
-          <h1 className="text-3xl font-bold text-gray-900">
+          <h1 className="text-3xl font-bold" style={{ color: '#fff', letterSpacing: '0.02em' }}>
             Candidate Dashboard
           </h1>
           <div className="flex items-center space-x-4">
-            <div className="text-sm text-gray-600">
+            <div className="text-sm" style={{ color: 'rgba(255,255,255,0.85)' }}>
               Logged in as: <span className="font-medium">{user?.email || 'Candidate'}</span>
             </div>
             <button 
               onClick={logout}
-              className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+              className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md"
+              style={{
+                background: '#ef4444',
+                color: '#fff',
+                boxShadow: '0 2px 8px rgba(239,68,68,0.10)',
+                transition: 'background 0.2s',
+              }}
             >
               <LogoutIcon className="w-4 h-4 mr-2" />
               Logout
@@ -120,7 +132,7 @@ export default function CandidateDashboard() {
 
           {loading ? (
             <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto" style={{ borderColor: colors.primary }}></div>
               <p className="mt-4 text-gray-600">Generating your test...</p>
             </div>
           ) : showTest ? (
@@ -131,15 +143,14 @@ export default function CandidateDashboard() {
               )}
             </>
           ) : (
-            <div className="bg-white p-6 rounded-lg shadow">
-              <h2 className="text-xl font-semibold mb-4">Create New Test</h2>
+            <>
               {!isVerified && (
                 <div className="mb-4 p-4 bg-yellow-100 text-yellow-700 rounded-lg">
                   Please complete face verification before starting the test.
                 </div>
               )}
               <TestForm onSubmit={handleGenerateTest} />
-            </div>
+            </>
           )}
         </div>
       </main>

@@ -17,6 +17,7 @@ import useCameraPermissionMonitor from '../hooks/useCameraPermissionMonitor';
 import CameraPermissionWarning from './CameraPermissionWarning';
 import useMicrophonePermissionMonitor from '../hooks/useMicrophonePermissionMonitor';
 import MicrophonePermissionWarning from './MicrophonePermissionWarning';
+import AppLayout from '../layouts/AppLayout';
 
 export default function ProctoringSuite({ sessionId, testId, isTestActive }) {
   const videoRef = useRef(null);
@@ -273,7 +274,7 @@ export default function ProctoringSuite({ sessionId, testId, isTestActive }) {
   };
 
   return (
-    <Box sx={{ position: 'relative' }}>
+    <AppLayout>
       {/* Camera Permission Warning Modal */}
       <CameraPermissionWarning
         isVisible={isCameraPermissionViolated && isTestActive}
@@ -349,6 +350,6 @@ export default function ProctoringSuite({ sessionId, testId, isTestActive }) {
       >
         {getProctoringStatus()}
       </Box>
-    </Box>
+    </AppLayout>
   );
 } 

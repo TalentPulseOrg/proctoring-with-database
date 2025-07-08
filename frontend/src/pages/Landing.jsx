@@ -18,6 +18,7 @@ import {
   FormControl,
   Divider
 } from '@mui/material';
+import { colors, fonts } from '../styles/theme';
 
 const Landing = () => {
   const { login, register, loading, error } = useAuth();
@@ -90,151 +91,127 @@ const Landing = () => {
   };
 
   return (
-    <Container maxWidth="sm">
-      <Box sx={{ mt: 8, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-        <Typography variant="h4" component="h1" gutterBottom>
-          Proctoring & Test System
-        </Typography>
-        
-        <Paper sx={{ width: '100%', mt: 3 }}>
-          <Tabs 
-            value={tab} 
-            onChange={handleTabChange} 
-            indicatorColor="primary"
-            textColor="primary"
-            variant="fullWidth"
-          >
-            <Tab label="Login" />
-            <Tab label="Register" />
-          </Tabs>
-          
-          <Box sx={{ p: 3 }}>
+    <div style={{ minHeight: '100vh', background: '#fff', position: 'relative', overflow: 'hidden', fontFamily: fonts.main }}>
+      {/* Teal curve at the top, facing downwards, with shadow */}
+      <svg
+        viewBox="0 0 1440 320"
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '320px',
+          zIndex: 0,
+          filter: 'drop-shadow(0 8px 16px rgba(20,184,166,0.25))'
+        }}
+        preserveAspectRatio="none"
+      >
+        <path
+          fill={colors.primary}
+          fillOpacity="1"
+          d="M0,64L60,80C120,96,240,128,360,133.3C480,139,600,117,720,117.3C840,117,960,139,1080,154.7C1200,171,1320,181,1380,186.7L1440,192L1440,0L1380,0C1320,0,1200,0,1080,0C960,0,840,0,720,0C600,0,480,0,360,0C240,0,120,0,60,0L0,0Z"
+        ></path>
+      </svg>
+      {/* Centered card and form (logic unchanged) */}
+      <div style={{
+        position: 'relative',
+        zIndex: 2,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: '100vh',
+      }}>
+        <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-8 mt-16">
+          <div className="flex justify-center mb-6">
+            <span className="text-3xl font-bold text-teal-600">Talent</span>
+            <span className="text-3xl font-bold text-gray-700 ml-2">Pulse</span>
+          </div>
+          <div className="flex justify-center mb-6">
+            <button
+              className={`px-6 py-2 rounded-t-lg font-semibold transition-colors duration-200 ${tab === 0 ? 'bg-teal-500 text-white' : 'bg-gray-100 text-teal-700'}`}
+              onClick={() => setTab(0)}
+            >
+              Login
+            </button>
+            <button
+              className={`px-6 py-2 rounded-t-lg font-semibold transition-colors duration-200 ml-2 ${tab === 1 ? 'bg-teal-500 text-white' : 'bg-gray-100 text-teal-700'}`}
+              onClick={() => setTab(1)}
+            >
+              Register
+            </button>
+          </div>
+          <div className="p-2">
             {error && (
-              <Alert severity="error" sx={{ mb: 2 }}>
-                {error}
-              </Alert>
+              <div className="bg-red-100 text-red-700 p-2 rounded mb-2 text-center">{error}</div>
             )}
-            
             {formError && (
-              <Alert severity="error" sx={{ mb: 2 }}>
-                {formError}
-              </Alert>
+              <div className="bg-red-100 text-red-700 p-2 rounded mb-2 text-center">{formError}</div>
             )}
-            
             {tab === 0 ? (
-              // Login Form
-              <Box component="form" onSubmit={handleLogin} noValidate>
-                <TextField
-                  margin="normal"
-                  required
-                  fullWidth
-                  id="email"
-                  label="Email Address"
+              <form onSubmit={handleLogin} className="space-y-4">
+                <input
+                  type="email"
                   name="email"
-                  autoComplete="email"
-                  autoFocus
+                  placeholder="Email Address"
                   value={formData.email}
                   onChange={handleChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  required
+                  autoFocus
                 />
-                
-                <Button
+                <button
                   type="submit"
-                  fullWidth
-                  variant="contained"
-                  sx={{ mt: 3, mb: 2 }}
+                  className="w-full bg-teal-500 text-white py-2 rounded hover:bg-teal-600 transition-colors font-semibold"
                   disabled={loading}
                 >
-                  {loading ? <CircularProgress size={24} /> : 'Sign In'}
-                </Button>
-              </Box>
+                  {loading ? 'Signing In...' : 'Sign In'}
+                </button>
+              </form>
             ) : (
-              // Register Form
-              <Box component="form" onSubmit={handleRegister} noValidate>
-                <TextField
-                  margin="normal"
-                  required
-                  fullWidth
-                  id="name"
-                  label="Full Name"
+              <form onSubmit={handleRegister} className="space-y-4">
+                <input
+                  type="text"
                   name="name"
-                  autoComplete="name"
-                  autoFocus
+                  placeholder="Full Name"
                   value={formData.name}
                   onChange={handleChange}
-                />
-                
-                <TextField
-                  margin="normal"
+                  className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-teal-500"
                   required
-                  fullWidth
-                  id="email"
-                  label="Email Address"
+                  autoFocus
+                />
+                <input
+                  type="email"
                   name="email"
-                  autoComplete="email"
+                  placeholder="Email Address"
                   value={formData.email}
                   onChange={handleChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  required
                 />
-                
-                <FormControl fullWidth margin="normal">
-                  <InputLabel id="role-label">Role</InputLabel>
-                  <Select
-                    labelId="role-label"
-                    id="role"
+                <select
                     name="role"
                     value={formData.role}
-                    label="Role"
                     onChange={handleChange}
-                  >
-                    <MenuItem value="candidate">Candidate</MenuItem>
-                    <MenuItem value="admin">Admin</MenuItem>
-                  </Select>
-                </FormControl>
-                
-                <Button
+                  className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  required
+                >
+                  <option value="candidate">Candidate</option>
+                  <option value="admin">Admin</option>
+                </select>
+                <button
                   type="submit"
-                  fullWidth
-                  variant="contained"
-                  sx={{ mt: 3, mb: 2 }}
+                  className="w-full bg-teal-500 text-white py-2 rounded hover:bg-teal-600 transition-colors font-semibold"
                   disabled={loading}
                 >
-                  {loading ? <CircularProgress size={24} /> : 'Register'}
-                </Button>
-              </Box>
+                  {loading ? 'Registering...' : 'Register'}
+                </button>
+              </form>
             )}
-            
-            <Divider sx={{ my: 3 }}>OR</Divider>
-            
-            {/* Direct Test Access Section */}
-            <Box sx={{ textAlign: 'center' }}>
-              <Typography variant="body1" gutterBottom>
-                Have a test ID? Access your test directly:
-              </Typography>
-              <Button
-                component={Link}
-                to="/test-registration"
-                variant="outlined"
-                fullWidth
-                sx={{ mt: 1 }}
-              >
-                Take a Test
-              </Button>
-              
-              {/* API Test Page Link */}
-              <Button
-                component={Link}
-                to="/api-test"
-                variant="outlined"
-                color="secondary"
-                fullWidth
-                sx={{ mt: 2 }}
-              >
-                API Test Page
-              </Button>
-            </Box>
-          </Box>
-        </Paper>
-      </Box>
-    </Container>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
 

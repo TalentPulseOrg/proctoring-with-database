@@ -2,6 +2,9 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import { API_BASE_URL } from '../config';
+import { colors, fonts } from '../styles/theme';
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend } from 'recharts';
+import { FaCheckCircle, FaRegQuestionCircle } from 'react-icons/fa';
 
 const TestResults = () => {
   const [results, setResults] = useState(null);
@@ -98,6 +101,36 @@ const TestResults = () => {
     });
   };
 
+  // Helper for PieChart data
+  const getPieData = (results) => [
+    { name: 'Correct', value: results.score || 0 },
+    { name: 'Incorrect', value: (results.total_questions || 0) - (results.score || 0) },
+  ];
+  const pieColors = [colors.primary, '#f87171']; // teal, red-400
+
+  // Helper for BarChart data (if available)
+  const getBarData = (results) => {
+    if (results.category_breakdown) {
+      return Object.entries(results.category_breakdown).map(([cat, val]) => ({
+        category: cat,
+        correct: val.correct,
+        incorrect: val.incorrect,
+      }));
+    }
+    return null;
+  };
+
+  // Grade calculation
+  const getGrade = (score, total) => {
+    if (!total) return '-';
+    const percent = (score / total) * 100;
+    if (percent >= 90) return { grade: 'A+', color: colors.primary };
+    if (percent >= 75) return { grade: 'A', color: colors.primary };
+    if (percent >= 60) return { grade: 'B', color: '#38bdf8' };
+    if (percent >= 40) return { grade: 'C', color: '#facc15' };
+    return { grade: 'F', color: '#f87171' };
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -166,160 +199,145 @@ const TestResults = () => {
     );
   }
 
-  return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="container mx-auto px-4 max-w-4xl">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Test Results
-          </h1>
-          <p className="text-gray-600">
-            Your test has been completed and results stored in database
-          </p>
-        </div>
+  // Use percentage and total_questions for grade
+  const score = results.score || 0;
+  const total = results.total_questions || 0;
+  const gradeObj = getGrade(score, total);
 
-        {/* Results Card */}
-        <div className="bg-white rounded-lg shadow-lg p-8 mb-6">
-          {/* Score Display */}
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-32 h-32 bg-blue-100 rounded-full mb-4">
-              <span
-                className={`text-4xl font-bold ${getScoreColor(
-                  results.percentage || 0
-                )}`}
-              >
-                {Math.round(results.percentage || 0)}%
+  return (
+    <div className="relative min-h-screen py-8" style={{ fontFamily: fonts.main, background: '#f8fafc' }}>
+      {/* Background accent */}
+      <div className="absolute inset-0 z-0" style={{ background: 'radial-gradient(circle at 70% 20%, #14b8a622 0%, #fff 80%)' }}></div>
+      <div className="relative z-10 max-w-3xl mx-auto p-4 md:p-8">
+        {/* Congratulatory header */}
+        <div className="text-center mb-8">
+          <h1 className="text-3xl md:text-4xl font-bold mb-2" style={{ color: colors.primaryDark, fontFamily: fonts.heading }}>Test Results</h1>
+          <p className="text-gray-600 text-lg">Your test has been completed and results stored in database</p>
+        </div>
+        {/* Main Card */}
+        <div className="bg-white rounded-2xl shadow-lg p-6 md:p-10 mb-8 flex flex-col items-center gap-8">
+          {/* PieChart for correct/incorrect */}
+          <div className="w-full flex flex-col items-center">
+            <ResponsiveContainer width="100%" height={180}>
+              <PieChart>
+                <Pie
+                  data={getPieData(results)}
+                  dataKey="value"
+                  nameKey="name"
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={60}
+                  fill={colors.primary}
+                  label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                  isAnimationActive={true}
+                >
+                  {getPieData(results).map((entry, idx) => (
+                    <Cell key={`cell-${idx}`} fill={pieColors[idx % pieColors.length]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+            <div className="mt-2 text-center">
+              <span className="text-3xl font-bold" style={{ color: gradeObj.color }}>{((score / (total || 1)) * 100).toFixed(0)}%</span>
+              <span className="ml-2 px-3 py-1 rounded-full text-sm font-semibold" style={{ background: '#fef2f2', color: gradeObj.color, marginLeft: 8 }}>
+                Grade: {gradeObj.grade}
               </span>
             </div>
-            <div
-              className={`inline-block px-4 py-2 rounded-full text-lg font-semibold ${getGradeColor(
-                grade
-              )}`}
-            >
-              Grade: {grade}
+          </div>
+          {/* Stat Cards */}
+          <div className="w-full flex flex-col md:flex-row gap-4 justify-center">
+            <div className="flex-1 bg-green-50 rounded-lg p-4 flex flex-col items-center shadow-sm">
+              <FaCheckCircle className="text-green-500 mb-1" size={28} />
+              <div className="text-2xl font-bold text-green-700">{score}</div>
+              <div className="text-gray-600 text-sm">Correct Answers</div>
+            </div>
+            <div className="flex-1 bg-blue-50 rounded-lg p-4 flex flex-col items-center shadow-sm">
+              <FaRegQuestionCircle className="text-blue-500 mb-1" size={28} />
+              <div className="text-2xl font-bold text-blue-700">{total}</div>
+              <div className="text-gray-600 text-sm">Total Questions</div>
+            </div>
+            <div className="flex-1 bg-purple-50 rounded-lg p-4 flex flex-col items-center shadow-sm">
+              <span className="text-purple-600 font-bold text-lg mb-1">{results.testDetails?.skill || results.test?.skill || 'N/A'}</span>
+              <div className="text-gray-600 text-sm">Test Subject</div>
             </div>
           </div>
-
-          {/* Detailed Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div className="text-center p-4 bg-gray-50 rounded-lg">
-              <div className="text-2xl font-bold text-green-600">
-                {results.score || 0}
-              </div>
-              <div className="text-gray-600">Correct Answers</div>
-            </div>
-            <div className="text-center p-4 bg-gray-50 rounded-lg">
-              <div className="text-2xl font-bold text-blue-600">
-                {results.total_questions || 0}
-              </div>
-              <div className="text-gray-600">Total Questions</div>
-            </div>
-            <div className="text-center p-4 bg-gray-50 rounded-lg">
-              <div className="text-2xl font-bold text-purple-600">
-                {results.testDetails?.skill || "N/A"}
-              </div>
-              <div className="text-gray-600">Test Subject</div>
+          {/* Test Info Table */}
+          <div className="w-full mt-4 bg-gray-50 rounded-lg p-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+              <div><span className="font-semibold">Test ID:</span> {results.testDetails?.testId || results.test_id || '-'}</div>
+              <div><span className="font-semibold">Candidate:</span> {results.testDetails?.candidate_name || results.user_name || '-'}</div>
+              <div><span className="font-semibold">Duration:</span> {results.testDetails?.duration || results.test?.duration || '-'} minutes</div>
+              <div><span className="font-semibold">Status:</span> {results.status}</div>
+              <div><span className="font-semibold">Start Time:</span> {results.testDetails?.startTime ? new Date(results.testDetails.startTime).toLocaleString() : results.start_time ? new Date(results.start_time).toLocaleString() : '-'}</div>
+              <div><span className="font-semibold">End Time:</span> {results.testDetails?.endTime ? new Date(results.testDetails.endTime).toLocaleString() : results.end_time ? new Date(results.end_time).toLocaleString() : '-'}</div>
             </div>
           </div>
-
-          {/* Test Information */}
-          <div className="border-t pt-6">
-            <h3 className="text-lg font-semibold mb-4">Test Information</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-              <div>
-                <span className="font-medium text-gray-700">Test ID:</span>
-                <span className="ml-2 text-gray-600">
-                  {results.testDetails?.testId || results.test_id || "N/A"}
-                </span>
-              </div>
-              <div>
-                <span className="font-medium text-gray-700">Candidate:</span>
-                <span className="ml-2 text-gray-600">
-                  {results.testDetails?.candidate_name || results.user_name || "N/A"}
-                </span>
-              </div>
-              <div>
-                <span className="font-medium text-gray-700">Duration:</span>
-                <span className="ml-2 text-gray-600">
-                  {results.testDetails?.duration || "N/A"} minutes
-                </span>
-              </div>
-              <div>
-                <span className="font-medium text-gray-700">Status:</span>
-                <span className="ml-2 text-gray-600 capitalize">
-                  {results.status || "Completed"}
-                </span>
-              </div>
-              <div>
-                <span className="font-medium text-gray-700">Start Time:</span>
-                <span className="ml-2 text-gray-600">
-                  {results.testDetails?.startTime
-                    ? new Date(results.testDetails.startTime).toLocaleString()
-                    : results.start_time
-                    ? new Date(results.start_time).toLocaleString()
-                    : "N/A"}
-                </span>
-              </div>
-              <div>
-                <span className="font-medium text-gray-700">End Time:</span>
-                <span className="ml-2 text-gray-600">
-                  {results.testDetails?.endTime
-                    ? new Date(results.testDetails.endTime).toLocaleString()
-                    : results.end_time
-                    ? new Date(results.end_time).toLocaleString()
-                    : "N/A"}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Question Responses */}
-          {results.responses && results.responses.length > 0 && (
-            <div className="border-t pt-6 mt-6">
-              <h3 className="text-lg font-semibold mb-4">Question Responses</h3>
-              <div className="space-y-4">
-                {results.responses.map((response, index) => (
-                  <div
-                    key={index}
-                    className={`p-4 rounded-lg ${
-                      response.is_correct ? "bg-green-50" : "bg-red-50"
-                    }`}
-                  >
-                    <p className="font-medium mb-2">
-                      Question {index + 1}: {response.question_text}
-                    </p>
-                    <p className="text-sm">
-                      Your Answer: {response.selected_option_text}
-                    </p>
-                    <p
-                      className={`text-sm font-medium ${
-                        response.is_correct ? "text-green-600" : "text-red-600"
-                      }`}
-                    >
-                      {response.is_correct ? "✓ Correct" : "✗ Incorrect"}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
+        </div>
+        {/* Performance Breakdown BarChart */}
+        <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
+          <div className="text-lg font-semibold text-gray-800 mb-4">Performance Breakdown</div>
+          {getBarData(results) ? (
+            <ResponsiveContainer width="100%" height={260}>
+              <BarChart data={getBarData(results)}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="category" />
+                <YAxis allowDecimals={false} />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="correct" fill={colors.primary} name="Correct" isAnimationActive={true} />
+                <Bar dataKey="incorrect" fill="#f87171" name="Incorrect" isAnimationActive={true} />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="text-gray-500 text-center">No category breakdown available for this test.</div>
           )}
         </div>
-
-        {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+        {/* Action buttons */}
+        <div className="flex flex-col md:flex-row gap-4 justify-center mb-8">
           <button
             onClick={handleViewDetails}
-            className="bg-blue-600 text-white py-3 px-8 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+            style={{
+              background: colors.buttonBg,
+              color: colors.buttonText,
+              fontFamily: fonts.main,
+              fontWeight: 700,
+              border: 'none',
+              borderRadius: 8,
+              padding: '0.75rem 2rem',
+              boxShadow: `0 2px 8px ${colors.cardShadow}`,
+              outline: 'none',
+              transition: 'box-shadow 0.2s, background 0.2s',
+            }}
+            onFocus={e => (e.target.style.boxShadow = `0 0 0 3px ${colors.primary}55`)}
+            onBlur={e => (e.target.style.boxShadow = `0 2px 8px ${colors.cardShadow}`)}
           >
             View Detailed Analysis
           </button>
           <button
             onClick={handleGoHome}
-            className="bg-gray-600 text-white py-3 px-8 rounded-lg hover:bg-gray-700 transition-colors font-medium"
+            style={{
+              background: '#334155',
+              color: '#fff',
+              fontFamily: fonts.main,
+              fontWeight: 700,
+              border: 'none',
+              borderRadius: 8,
+              padding: '0.75rem 2rem',
+              boxShadow: `0 2px 8px ${colors.cardShadow}`,
+              outline: 'none',
+              transition: 'box-shadow 0.2s, background 0.2s',
+            }}
+            onFocus={e => (e.target.style.boxShadow = `0 0 0 3px #33415555`)}
+            onBlur={e => (e.target.style.boxShadow = `0 2px 8px ${colors.cardShadow}`)}
           >
             Back to Home
           </button>
+        </div>
+        {/* Motivational quote */}
+        <div className="text-center text-gray-500 italic mt-8">
+          "Success is the sum of small efforts, repeated day in and day out."<br />
+          <span className="text-teal-700 font-semibold">Keep learning and growing!</span>
         </div>
       </div>
     </div>

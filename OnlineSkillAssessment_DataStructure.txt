@@ -412,15 +412,3 @@ prompt = f"""You are an expert-level question generator tasked with creating {re
             - Validate all Q&A pairs before finalizing.
             
             """
-
-
-
-
-
-
-
-
-
-difficulty
-bt level
-code snippet

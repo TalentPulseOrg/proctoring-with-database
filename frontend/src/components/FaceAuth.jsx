@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 import { API_BASE_URL } from '../config';
+import AppLayout from '../layouts/AppLayout';
+import { colors, fonts } from '../styles/theme';
 
 const FaceAuth = ({ onSuccess }) => {
     const [step, setStep] = useState('id-upload'); // 'id-upload' | 'verification'
@@ -141,7 +143,21 @@ const FaceAuth = ({ onSuccess }) => {
                 />
                 <button
                     onClick={() => fileInputRef.current?.click()}
-                    className="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition"
+                    style={{
+                        width: '100%',
+                        background: colors.buttonBg,
+                        color: colors.buttonText,
+                        padding: '0.5rem 1rem',
+                        borderRadius: 6,
+                        fontWeight: 500,
+                        fontFamily: fonts.main,
+                        border: 'none',
+                        outline: 'none',
+                        transition: 'box-shadow 0.2s, background 0.2s',
+                        boxShadow: `0 2px 8px ${colors.cardShadow}`
+                    }}
+                    onFocus={e => (e.target.style.boxShadow = `0 0 0 3px ${colors.primary}55`)}
+                    onBlur={e => (e.target.style.boxShadow = `0 2px 8px ${colors.cardShadow}`)}
                 >
                     Choose ID Photo
                 </button>
@@ -163,7 +179,21 @@ const FaceAuth = ({ onSuccess }) => {
             {!isCapturing ? (
                 <button
                     onClick={startCamera}
-                    className="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition"
+                    style={{
+                        width: '100%',
+                        background: colors.buttonBg,
+                        color: colors.buttonText,
+                        padding: '0.5rem 1rem',
+                        borderRadius: 6,
+                        fontWeight: 500,
+                        fontFamily: fonts.main,
+                        border: 'none',
+                        outline: 'none',
+                        transition: 'box-shadow 0.2s, background 0.2s',
+                        boxShadow: `0 2px 8px ${colors.cardShadow}`
+                    }}
+                    onFocus={e => (e.target.style.boxShadow = `0 0 0 3px ${colors.primary}55`)}
+                    onBlur={e => (e.target.style.boxShadow = `0 2px 8px ${colors.cardShadow}`)}
                 >
                     Start Camera
                 </button>
@@ -187,7 +217,6 @@ const FaceAuth = ({ onSuccess }) => {
     );
 
     return (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
             <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
                 <h2 className="text-2xl font-bold mb-4 text-center">ID Verification</h2>
                 
@@ -211,7 +240,6 @@ const FaceAuth = ({ onSuccess }) => {
                     </div>
                 )}
             </div>
-        </div>
     );
 };
 

@@ -64,6 +64,8 @@ frontend/dist/
 frontend/.env
 frontend/.env.*
 
+node_modules/
+
 # Logs
 *.log
 logs/

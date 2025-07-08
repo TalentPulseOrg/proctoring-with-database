@@ -7,6 +7,7 @@ import { Box, Typography, LinearProgress, Button, Alert, AlertTitle } from '@mui
 import { useEnhancedViolationLogger } from '../hooks/useEnhancedViolationLogger';
 import { getBrowserCompatibilityReport, getBrowserCompatibilityMessage } from '../utils/browserDetection';
 import { logCameraPermission, logMicrophonePermission } from '../api/api';
+import AppLayout from '../layouts/AppLayout';
 
 const PrerequisitesCheck = ({ onComplete }) => {
     const navigate = useNavigate();
@@ -234,7 +235,7 @@ const PrerequisitesCheck = ({ onComplete }) => {
         const hasPermissionIssues = systemChecks.browser && (!systemChecks.camera || !systemChecks.microphone);
 
         return (
-            <>
+            <AppLayout>
                 {/* Toast Notifications */}
                 <ToastContainer>
                     {toasts.map(toast => (
@@ -247,7 +248,7 @@ const PrerequisitesCheck = ({ onComplete }) => {
                     ))}
                 </ToastContainer>
 
-                <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+                <div className="bg-gray-100 flex items-center justify-center p-4">
                     <div className="bg-white rounded-lg shadow-lg p-6 max-w-md w-full">
                         <h2 className="text-2xl font-bold mb-4">System Requirements Check</h2>
                         
@@ -387,14 +388,17 @@ const PrerequisitesCheck = ({ onComplete }) => {
                         )}
                     </div>
                 </div>
-            </>
+            </AppLayout>
         );
     }
 
+    // Face authentication step (ID verification)
     return (
-        <Box sx={{ maxWidth: 600, mx: 'auto', p: 4 }}>
-            <FaceAuth onSuccess={handleFaceAuthSuccess} />
-        </Box>
+        <AppLayout>
+            <div className="bg-gray-100 flex items-center justify-center p-9">
+                <FaceAuth onSuccess={handleFaceAuthSuccess} />
+            </div>
+        </AppLayout>
     );
 };
 

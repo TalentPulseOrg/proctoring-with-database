@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { API_BASE_URL } from '../config';
+import AppLayout from '../layouts/AppLayout';
 
 const TestMonitoringViewer = ({ testId }) => {
   const [monitoringData, setMonitoringData] = useState(null);
@@ -64,7 +65,7 @@ const TestMonitoringViewer = ({ testId }) => {
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-lg p-6">
+    <AppLayout>
       {/* Tabs */}
       <div className="flex space-x-4 mb-6 border-b">
         <button
@@ -176,7 +177,7 @@ const TestMonitoringViewer = ({ testId }) => {
           </div>
         </div>
       )}
-    </div>
+    </AppLayout>
   );
 };
 

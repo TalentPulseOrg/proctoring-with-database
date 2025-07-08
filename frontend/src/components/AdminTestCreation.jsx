@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useTestContext } from '../contexts/TestContext';
+import { colors } from '../styles/theme';
 
 const AdminTestCreation = () => {
     const { tests, addTest } = useTestContext();
@@ -138,7 +139,8 @@ const AdminTestCreation = () => {
                 <div className="pt-4">
                     <button
                         type="submit"
-                        className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                        className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white"
+                        style={{ background: colors.primary, boxShadow: '0 2px 8px rgba(20,184,166,0.10)' }}
                     >
                         Create Test
                     </button>

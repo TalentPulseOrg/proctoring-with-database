@@ -1,19 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import {
-  Container,
-  Typography,
-  Box,
-  Button,
-  Paper,
-  FormControl,
-  RadioGroup,
-  FormControlLabel,
-  Radio,
-  Alert,
-  CircularProgress
-} from '@mui/material';
+import { colors, fonts } from '../styles/theme';
 
 const SelectRole = () => {
   const [selectedRole, setSelectedRole] = useState('candidate');
@@ -68,57 +56,52 @@ const SelectRole = () => {
   };
 
   return (
-    <Container maxWidth="sm">
-      <Box sx={{ mt: 8, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-        <Typography variant="h4" component="h1" gutterBottom>
-          Select Your Role
-        </Typography>
-        
-        <Paper sx={{ width: '100%', mt: 3, p: 3 }}>
-          {error && (
-            <Alert severity="error" sx={{ mb: 3 }}>
-              {error}
-            </Alert>
-          )}
-          
-          <Typography variant="body1" paragraph>
-            Please select your role in the system. This will determine the features available to you.
-          </Typography>
-          
-          <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
-            <FormControl component="fieldset" sx={{ mb: 3, width: '100%' }}>
-              <RadioGroup
-                aria-label="role"
+    <div style={{ minHeight: '100vh', background: colors.sidebarBg, fontFamily: fonts.main }} className="flex flex-col items-center justify-center">
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-8 mt-16">
+        <div className="flex justify-center mb-6">
+          <span className="text-3xl font-bold text-teal-600">Talent</span>
+          <span className="text-3xl font-bold text-gray-700 ml-2">Pulse</span>
+        </div>
+        <h1 className="text-2xl font-bold mb-6 text-center">Select Your Role</h1>
+        {error && (
+          <div className="bg-red-100 text-red-700 p-2 rounded mb-2 text-center">{error}</div>
+        )}
+        <p className="mb-4 text-gray-700 text-center">Please select your role in the system. This will determine the features available to you.</p>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="flex flex-col gap-4">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="radio"
                 name="role"
-                value={selectedRole}
+                value="candidate"
+                checked={selectedRole === 'candidate'}
                 onChange={handleRoleChange}
-              >
-                <FormControlLabel 
-                  value="candidate" 
-                  control={<Radio />} 
-                  label="Candidate - Take tests and be proctored" 
-                />
-                <FormControlLabel 
-                  value="admin" 
-                  control={<Radio />} 
-                  label="Admin - Create and manage tests, view results" 
-                />
-              </RadioGroup>
-            </FormControl>
-            
-            <Button
-              type="submit"
-              fullWidth
-              variant="contained"
-              sx={{ mt: 3, mb: 2 }}
-              disabled={loading}
-            >
-              {loading ? <CircularProgress size={24} /> : 'Continue'}
-            </Button>
-          </Box>
-        </Paper>
-      </Box>
-    </Container>
+                className="accent-teal-500"
+              />
+              <span className="font-medium">Candidate - Take tests and be proctored</span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="radio"
+                name="role"
+                value="admin"
+                checked={selectedRole === 'admin'}
+                onChange={handleRoleChange}
+                className="accent-teal-500"
+              />
+              <span className="font-medium">Admin - Create and manage tests, view results</span>
+            </label>
+          </div>
+          <button
+            type="submit"
+            className="w-full bg-teal-500 text-white py-2 rounded hover:bg-teal-600 transition-colors font-semibold"
+            disabled={loading}
+          >
+            {loading ? 'Continuing...' : 'Continue'}
+          </button>
+        </form>
+      </div>
+    </div>
   );
 };
 

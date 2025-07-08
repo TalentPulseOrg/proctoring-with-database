@@ -1,6 +1,7 @@
 import React from 'react';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useTestContext } from '../contexts/TestContext';
+import { colors } from '../styles/theme';
 
 const AdminTestList = () => {
     const { tests, deleteTest, deleteAllTests } = useTestContext();
@@ -42,7 +43,8 @@ const AdminTestList = () => {
                 <h2 className="text-xl font-semibold">Created Tests</h2>
                 <button
                     onClick={handleDeleteAll}
-                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center space-x-2"
+                    className="px-4 py-2 text-white rounded-lg flex items-center space-x-2"
+                    style={{ background: '#ef4444' }}
                 >
                     <DeleteIcon />
                     <span>Delete All Tests</span>
@@ -73,7 +75,7 @@ const AdminTestList = () => {
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                     <button
                                         onClick={() => handleDeleteTest(test.testId)}
-                                        className="text-red-600 hover:text-red-900"
+                                        className="text-red-600 hover:text-red-900 font-semibold"
                                     >
                                         Delete
                                     </button>

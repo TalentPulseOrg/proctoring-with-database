@@ -5,6 +5,7 @@ import * as faceapi from 'face-api.js';
 import { useViolationLogger } from '../hooks/useViolationLogger';
 import { useEnhancedViolationLogger } from '../hooks/useEnhancedViolationLogger';
 import { API_BASE_URL } from '../config';
+import AppLayout from '../layouts/AppLayout';
 
 const CALIBRATION_STEPS = [
   { key: 'left', label: 'Look LEFT' },
@@ -304,7 +305,7 @@ const WebcamMonitor = ({ testId, sessionId = null, userId, isTestActive = false 
   const lightingStyle = getLightingStatusStyle();
 
   return (
-    <div className="webcam-monitor">
+    <AppLayout>
       {/* Calibration UI */}
       {!calibrated && calibrationStep && (
         <div style={{
@@ -402,7 +403,7 @@ const WebcamMonitor = ({ testId, sessionId = null, userId, isTestActive = false 
           ⚠️ {lightingStatus.message}
         </div>
       )}
-    </div>
+    </AppLayout>
   );
 };
 

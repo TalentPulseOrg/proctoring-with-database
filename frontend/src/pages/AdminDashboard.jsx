@@ -24,6 +24,7 @@ import DownloadIcon from '@mui/icons-material/Download';
 import LogoutIcon from '@mui/icons-material/Logout';
 import CompletedTests from '../components/admin/CompletedTests';
 import TestMonitoringViewer from '../components/TestMonitoringViewer';
+import { colors, fonts } from '../styles/theme';
 
 export default function AdminDashboard() {
   const [selectedTest, setSelectedTest] = useState(null);
@@ -103,19 +104,30 @@ export default function AdminDashboard() {
 
   return (
     <TestProvider>
-      <div className="min-h-screen bg-gray-100">
-        <header className="bg-white shadow">
+      <div style={{ minHeight: '100vh', background: '#f8fafc', fontFamily: fonts.main }}>
+        {/* Themed Header */}
+        <header style={{
+          background: colors.sidebarBg,
+          color: '#fff',
+          boxShadow: '0 2px 8px rgba(20,184,166,0.10)',
+        }}>
           <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
-            <h1 className="text-3xl font-bold text-gray-900">
+            <h1 className="text-3xl font-bold" style={{ color: '#fff', letterSpacing: '0.02em' }}>
               Admin Dashboard
             </h1>
             <div className="flex items-center space-x-4">
-              <div className="text-sm text-gray-600">
+              <div className="text-sm" style={{ color: 'rgba(255,255,255,0.85)' }}>
                 Logged in as: <span className="font-medium">{user?.email || 'Admin'}</span>
               </div>
               <button 
                 onClick={logout}
-                className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md"
+                style={{
+                  background: '#ef4444',
+                  color: '#fff',
+                  boxShadow: '0 2px 8px rgba(239,68,68,0.10)',
+                  transition: 'background 0.2s',
+                }}
               >
                 <LogoutIcon className="w-4 h-4 mr-2" />
                 Logout
@@ -127,23 +139,30 @@ export default function AdminDashboard() {
         <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
           <div className="px-4 py-6 sm:px-0 space-y-6">
             {/* Test Creation Section */}
-            <AdminTestCreation />
+            <div style={{ background: '#fff', borderRadius: '1rem', boxShadow: '0 2px 8px rgba(20,184,166,0.07)', padding: '2rem' }}>
+              <AdminTestCreation />
+            </div>
 
             {/* Test List Section */}
-            <AdminTestList />
+            <div style={{ background: '#fff', borderRadius: '1rem', boxShadow: '0 2px 8px rgba(20,184,166,0.07)', padding: '2rem' }}>
+              <AdminTestList />
+            </div>
 
             {/* Completed Tests Section */}
-            <CompletedTests />
+            <div style={{ background: '#fff', borderRadius: '1rem', boxShadow: '0 2px 8px rgba(20,184,166,0.07)', padding: '2rem' }}>
+              <CompletedTests />
+            </div>
 
             {showMonitoring && selectedTest && (
-              <div>
+              <div style={{ background: '#fff', borderRadius: '1rem', boxShadow: '0 2px 8px rgba(20,184,166,0.07)', padding: '2rem' }}>
                 <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-2xl font-semibold">
+                  <h2 className="text-2xl font-semibold text-teal-700">
                     Monitoring Data for Test: {selectedTest.testId}
                   </h2>
                   <button
                     onClick={() => setShowMonitoring(false)}
-                    className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+                    className="px-4 py-2 rounded font-semibold"
+                    style={{ background: colors.primary, color: '#fff', boxShadow: '0 2px 8px rgba(20,184,166,0.10)' }}
                   >
                     Back to Tests
                   </button>
@@ -187,7 +206,7 @@ export default function AdminDashboard() {
             )}
           </DialogContent>
           <DialogActions>
-            <Button onClick={closeLogs}>Close</Button>
+            <Button onClick={closeLogs} style={{ background: colors.primary, color: '#fff', fontWeight: 600, borderRadius: 8, boxShadow: '0 2px 8px rgba(20,184,166,0.10)' }}>Close</Button>
           </DialogActions>
         </Dialog>
 
@@ -200,7 +219,7 @@ export default function AdminDashboard() {
             )}
           </DialogContent>
           <DialogActions>
-            <Button onClick={closeReport}>Close</Button>
+            <Button onClick={closeReport} style={{ background: colors.primary, color: '#fff', fontWeight: 600, borderRadius: 8, boxShadow: '0 2px 8px rgba(20,184,166,0.10)' }}>Close</Button>
           </DialogActions>
         </Dialog>
       </div>

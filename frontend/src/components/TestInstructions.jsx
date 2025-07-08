@@ -7,6 +7,8 @@ import useCameraPermissionMonitor from '../hooks/useCameraPermissionMonitor';
 import CameraPermissionWarning from './CameraPermissionWarning';
 import useMicrophonePermissionMonitor from '../hooks/useMicrophonePermissionMonitor';
 import MicrophonePermissionWarning from './MicrophonePermissionWarning';
+import AppLayout from '../layouts/AppLayout';
+import { colors } from '../styles/theme';
 
 const TestInstructions = ({ onStartTest }) => {
   const [testDetails, setTestDetails] = useState(null);
@@ -114,7 +116,8 @@ const TestInstructions = ({ onStartTest }) => {
         </div>
         <button
           onClick={() => navigate('/test-registration')}
-          className="w-full bg-blue-600 text-white py-3 rounded-md hover:bg-blue-700 transition-colors"
+          className="w-full py-3 rounded-md font-semibold"
+          style={{ background: colors.primary, color: '#fff' }}
         >
           Back to Registration
         </button>
@@ -123,53 +126,55 @@ const TestInstructions = ({ onStartTest }) => {
   }
 
   return (
-    <Box sx={{ maxWidth: 800, mx: 'auto', p: 4 }}>
-      {/* Camera Permission Warning */}
-      <CameraPermissionWarning
-        isVisible={!hasCameraPermission && cameraStatus === 'denied'}
-        onRetryPermission={recheckPermission}
-        cameraStatus={cameraStatus}
-        isLoading={false}
-      />
+    <AppLayout>
+      <div className="max-w-2xl mx-auto p-8 bg-white rounded-2xl shadow-lg mt-8">
+        {/* Camera Permission Warning */}
+        <CameraPermissionWarning
+          isVisible={!hasCameraPermission && cameraStatus === 'denied'}
+          onRetryPermission={recheckPermission}
+          cameraStatus={cameraStatus}
+          isLoading={false}
+        />
 
-      {/* Microphone Permission Warning */}
-      <MicrophonePermissionWarning
-        isVisible={!hasMicrophonePermission && microphoneStatus === 'denied' && hasCameraPermission}
-        onRetryPermission={recheckMicrophonePermission}
-        microphoneStatus={microphoneStatus}
-        isLoading={false}
-      />
+        {/* Microphone Permission Warning */}
+        <MicrophonePermissionWarning
+          isVisible={!hasMicrophonePermission && microphoneStatus === 'denied' && hasCameraPermission}
+          onRetryPermission={recheckMicrophonePermission}
+          microphoneStatus={microphoneStatus}
+          isLoading={false}
+        />
 
-      <h1 className="text-2xl font-bold mb-6">Test Instructions</h1>
-      
-      {testDetails && (
-        <>
-          <div className="mb-6">
-            <h2 className="text-lg font-semibold mb-2">Test Details</h2>
-            <p><strong>Skill:</strong> {testDetails.skill}</p>
-            <p><strong>Number of Questions:</strong> {testDetails.numQuestions}</p>
-            <p><strong>Duration:</strong> {testDetails.duration} minutes</p>
-          </div>
-          
-          <div className="mb-6">
-            <h2 className="text-lg font-semibold mb-2">Important Guidelines</h2>
-            <ul className="list-disc pl-6 space-y-2">
-              <li>You must remain in fullscreen mode throughout the test.</li>
-              <li>Ensure good lighting and a clear view of your face.</li>
-              <li>Ensure no one else is present in the room.</li>
-              <li>After 3 violations, your test will be terminated.</li>
-            </ul>
-          </div>
-          
-          <button
-            onClick={handleStartTest}
-            className="w-full bg-blue-600 text-white py-3 rounded-md hover:bg-blue-700 transition-colors"
-          >
-            Start Test
-          </button>
-        </>
-      )}
-    </Box>
+        <h1 className="text-2xl font-bold mb-6 text-center text-teal-700">Test Instructions</h1>
+        {testDetails && (
+          <>
+            <div className="mb-6 p-4 bg-teal-50 rounded-lg border-l-4 border-teal-400">
+              <h2 className="text-lg font-semibold mb-2 text-teal-700">Test Details</h2>
+              <ul className="text-gray-700 space-y-1">
+                <li><strong>Skill:</strong> {testDetails.skill}</li>
+                <li><strong>Number of Questions:</strong> {testDetails.numQuestions}</li>
+                <li><strong>Duration:</strong> {testDetails.duration} minutes</li>
+              </ul>
+            </div>
+            <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+              <h2 className="text-lg font-semibold mb-2 text-teal-700">Important Guidelines</h2>
+              <ul className="list-disc pl-6 space-y-2 text-gray-700">
+                <li>You must remain in fullscreen mode throughout the test.</li>
+                <li>Ensure good lighting and a clear view of your face.</li>
+                <li>Ensure no one else is present in the room.</li>
+                <li>After 3 violations, your test will be terminated.</li>
+              </ul>
+            </div>
+            <button
+              onClick={handleStartTest}
+              className="w-full py-3 rounded-md font-semibold shadow-md hover:shadow-lg transition"
+              style={{ background: colors.primary, color: '#fff' }}
+            >
+              Start Test
+            </button>
+          </>
+        )}
+      </div>
+    </AppLayout>
   );
 };
 
