@@ -147,6 +147,13 @@ async def generate_questions_with_gemini(library_name: str, topic: str) -> Dict[
     if text.startswith("```"):
         text = re.sub(r"^```(?:json)?", "", text, flags=re.IGNORECASE).strip()
         text = re.sub(r"```$", "", text).strip()
+    # Fix common LLM JSON mistakes
+    # Fix double colon in optionName/optionText
+    text = re.sub(
+        r'(\{"optionName"\s*:\s*"option\d")\s*:\s*',
+        r'\1, "optionText": ',
+        text
+    )
     try:
         data = json.loads(text)
         return data
@@ -161,8 +168,8 @@ async def create_library(request: LibraryCreateRequest):
         raise HTTPException(status_code=500, detail="AI did not return any skill areas.")
     response = []
     for idx, skill_area in enumerate(skill_areas, start=1):
-        questions = skill_area.get("questions", [])
-        question_ids = list(range(1, len(questions) + 1))
+        questions = skill_area.get("questionData", {}).get("questions", [])
+        question_ids = skill_area.get("questionData", {}).get("questionIds", list(range(1, len(questions) + 1)))
         response.append({
             "skillAreaId": idx,
             "skillAreaName": skill_area.get("skillAreaName", f"Skill Area {idx}"),
