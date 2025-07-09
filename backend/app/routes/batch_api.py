@@ -100,17 +100,21 @@ def clean_json_string(data):
 def parse_gemini_response(response_text):
     try:
         json_str = response_text.strip()
-        json_str = re.sub(r'```json\\s*', '', json_str)
-        json_str = re.sub(r'```\\s*$', '', json_str)
+        json_str = re.sub(r'```json\s*', '', json_str)
+        json_str = re.sub(r'```\s*$', '', json_str)
         start_idx = json_str.find('{')
         end_idx = json_str.rfind('}') + 1
         if start_idx >= 0 and end_idx > start_idx:
             json_str = json_str[start_idx:end_idx]
         data = json.loads(json_str)
-        if 'questions' not in data:
-            logger.error("Response missing 'questions' key")
-            return {"questions": []}
-        return data
+        # Check for 'questions' at the top level
+        if 'questions' in data:
+            return data
+        # Check for 'questionData' with 'questions' inside
+        if 'questionData' in data and 'questions' in data['questionData']:
+            return data['questionData']
+        logger.error("Response missing 'questions' key")
+        return {"questions": []}
     except Exception as e:
         logger.error(f"Error parsing Gemini response: {str(e)}")
         return {"questions": []}
@@ -195,10 +199,10 @@ async def manual_generate_question_api(
                         "BTLevel": 1,
                         "difficulty": 1,
                         "optionData": [
-                          { "optionName": "option1", "optionText": "..." },
-                          { "optionName": "option2", "optionText": "..." },
-                          { "optionName": "option3", "optionText": "..." },
-                          { "optionName": "option4", "optionText": "..." }
+                          {{ "optionName": "option1", "optionText": "..." }},
+                          {{ "optionName": "option2", "optionText": "..." }},
+                          {{ "optionName": "option3", "optionText": "..." }},
+                          {{ "optionName": "option4", "optionText": "..." }}
                         ],
                         "answer": "option2"
                     }}
