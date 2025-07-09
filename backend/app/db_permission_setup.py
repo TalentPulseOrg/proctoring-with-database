@@ -2,6 +2,10 @@ import pyodbc
 from sqlalchemy import inspect
 from app.database import engine
 import logging
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -24,7 +28,7 @@ def grant_table_permissions():
         
         # Grant permissions for each table
         for table in tables:
-            sql = f"GRANT SELECT, INSERT, UPDATE, DELETE ON dbo.{table} TO preet"
+            sql = f"GRANT SELECT, INSERT, UPDATE, DELETE ON dbo.{table} TO {os.getenv("DB_USER")}"
             cursor.execute(sql)
             logger.info(f"Granted permissions on table: {table}")
             
