@@ -16,6 +16,7 @@ router = APIRouter()
 class QuestionGenerationRequest(BaseModel):
     domain: str
     topic: str
+    subtopicData : List[str]
     difficulty: Optional[str] = None
     BTLevel: Optional[str] = None
     noOfQuestions: int = Field(..., alias="noOfQuestions")
@@ -240,12 +241,12 @@ def generate_question_api(request: QuestionGenerationRequest):
     if not genai_model:
         raise HTTPException(status_code=500, detail="AI model not configured. Set GEMINI_API_KEY.")
     try:
-        prompt = f"""You are an expert-level question generator tasked with creating {request.noOfQuestions} high-qaulity multiple-choice questions (MCQs) on '{request.topic}' in the domain '{request.domain}'. Ensure accuracy, clarity, and adherence to Bloom’s Taxonomy. Adhere to following guidelines:
+        prompt = f"""You are an expert-level question generator tasked with creating {request.noOfQuestions} high-qaulity multiple-choice questions (MCQs) on subtopics '{request.subtopicData}' which are related to topic '{request.topic}' in the domain '{request.domain}'. Ensure accuracy, clarity, and adherence to Bloom’s Taxonomy. Adhere to following guidelines:
         
             ---
-            ### *1. Topic and Domain Identification and Organization
-            - Generate questions only for the provided topic {request.topic} in the domain {request.domain}.
-            - Organize questions by topic, ensuring equal coverage across all topics.
+            ### *1. Topic, Subtopic and Domain Identification and Organization
+            - Generate questions only for the provided subtopics {request.subtopicData} which are related to topic {request.topic} and in the domain {request.domain}.
+            - Organize questions by subtopics, ensuring equal coverage across all subtopics.
             
             ### *2. Bloom's Taxonomy Coverage*
             - Ensure proper distribution of all six levels of Bloom's taxonomy as per the following chart:
