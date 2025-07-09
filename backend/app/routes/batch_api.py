@@ -124,6 +124,7 @@ async def manual_generate_question_api(
     manual: UploadFile = File(...),
     domain: str = Form(...),
     topic: str = Form(...),
+    subtopicData: List[str] = Form(...),
     noOfQuestions: int = Form(...)
 ):
     if not genai_model:
@@ -135,53 +136,62 @@ async def manual_generate_question_api(
         pdf_path = os.path.join(UPLOAD_FOLDER, filename)
         pdf_text = extract_pdf_text(pdf_path)
         # Generate prompt from PDF text
-        prompt = f"""You are an expert-level question generator tasked with creating {noOfQuestions} high-quality multiple-choice questions (MCQs) for domain '{domain}' and topic '{topic}': {pdf_text}. Ensure accuracy, clarity, and adherence to Bloom’s Taxonomy. Adhere to following guidelines:
+        prompt = f"""You are an expert-level question generator tasked with creating exactly {noOfQuestions} high-quality multiple-choice questions (MCQs) for subtopics '{subtopicData}' related to topic '{topic}' in domain '{domain}': {pdf_text}. Ensure accuracy, clarity, and adherence to Bloom’s Taxonomy. Adhere to following guidelines:
         
         ---
-        ### *1. Topic Identification and Organization
-        - Generate questions only for the provided topic {topic} from {pdf_text}.
-        - Organize questions by topic, ensuring equal coverage across all topics.
+        ### *1. Topic, Subtopic, and Domain Identification and Organization
+        - Generate questions only for the provided subtopics {subtopicData} which are related to topic {topic} and in the domain {domain}.
+        - Organize questions by subtopics, ensuring equal coverage across all subtopics.
         
         ### *2. Bloom's Taxonomy Coverage*
-        - Ensure proper distribution of all six levels of Bloom's taxonomy as per the followingchart:
+        - Ensure proper distribution of all six levels of Bloom's taxonomy as per the following chart:
             Remember : 10-15 percent
             Understand : 15-20 percent
             Apply : 25-30 percent
             Analyze : 15-20 percent
             Evaluate : 10-15 percent
             Create : 5-10 percent
-            
         - *Remember*: Recall basic facts and definitions.  
         - *Understand*: Explain concepts or interpret information.  
         - *Apply*: Solve problems using learned techniques.  
         - *Analyze*: Break down information to examine relationships.  
         - *Evaluate*: Judge based on criteria or standards.  
         - *Create*: Formulate new solutions or ideas.  
-        - Sort questions in the order of Bloom's taxonomy levels: remember, understand, apply,analyze, evaluate, and create.  
-        
+        - Sort questions in the order of Bloom's taxonomy levels: remember, understand, apply, analyze, evaluate, and create.  
+        - Assign BT-level as per below :-
+            Remember :- 0
+            Understand :- 1
+            Apply :- 2
+            Analyze :- 3
+            Evaluate :- 4
+            Create :- 5
         ---
         
         ### *3. Question Design*  
         - Each question must be clear, concise, and self-contained.  
-        - For applied questions, include *code snippets* where relevant, written in programminglanguages suitable to the "{topic}" (e.g., Python, JavaScript, etc.).  
+        - For applied questions, include *code snippets* where relevant, written in programming languages suitable to the "{topic}" (e.g., Python, JavaScript, etc.).  
         - Indicate the language explicitly in the "code" field.  
         - Ensure code snippets are executable and produce results aligned with the correct answer.  
         ---
         
         ### *4. Skills coverage
-        - If comma seperated skills or topic are provided, ensure questions of each comma seperated skillare included.
+        - If comma separated skills or topic are provided, ensure questions of each comma separated skill are included.
         - Generate equal number of questions of each skill or topic.
         - Ensure generated questions are relevant to provided skills or topic.
 
         ### *5. Options and Correct Answer*  
         - Provide *four options* (option1, option2, option3, option4) for each question.  
-        - Systematically alternate the correct option between "A", "B", "C", and "D" across theset.  
-        - Design *distractor options* (incorrect answers) to be plausible, closely related to thecorrect answer, and capable of challenging critical thinking.  
+        - Systematically alternate the correct option between "A", "B", "C", and "D" across the set.  
+        - Design *distractor options* (incorrect answers) to be plausible, closely related to the correct answer, and capable of challenging critical thinking.  
 
         ---
         
         ### *6. Difficulty Levels*  
-        - Assign one of three difficulty levels to each question: *Easy, **Intermediate, or**Hard*.  
+        - Assign one of three difficulty levels to each question: *Easy, **Intermediate, or **Hard*.
+        - Assign difficulty levels as per below :- 
+            Easy :- 0
+            Intermediate :- 1
+            Hard :- 2 
         - Ensure a balanced distribution of difficulty across questions.  
 
         ---
@@ -204,7 +214,7 @@ async def manual_generate_question_api(
                           {{ "optionName": "option3", "optionText": "..." }},
                           {{ "optionName": "option4", "optionText": "..." }}
                         ],
-                        "answer": "option2"
+                        "answerData": "option2"
                     }}
                 ]
             }}
@@ -212,12 +222,12 @@ async def manual_generate_question_api(
 
         ### *8. Verification Requirements*  
         - *Accuracy*: Verify the correctness of the provided correct option.  
-        - *Code Execution*: For code-based questions, execute the code snippets in a sandboxenvironment to confirm results.  
+        - *Code Execution*: For code-based questions, execute the code snippets in a sandbox environment to confirm results.  
         - *Distractor Quality*: Ensure incorrect options are plausible but not correct.  
-        - *Taxonomy and Difficulty Validation*: Confirm that the Bloom's taxonomy level anddifficulty level match the question's complexity.  
+        - *Taxonomy and Difficulty Validation*: Confirm that the Bloom's taxonomy level and difficulty level match the question's complexity.  
 
         ---
-
+        
         ### *9. Additional Guidelines*  
         - Avoid ambiguity or overly complex jargon in questions and options.  
         - Use professional language and ensure all questions align with the topic and subtopic.  
