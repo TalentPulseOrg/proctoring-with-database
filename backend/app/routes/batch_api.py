@@ -241,7 +241,7 @@ def generate_question_api(request: QuestionGenerationRequest):
     if not genai_model:
         raise HTTPException(status_code=500, detail="AI model not configured. Set GEMINI_API_KEY.")
     try:
-        prompt = f"""You are an expert-level question generator tasked with creating {request.noOfQuestions} high-qaulity multiple-choice questions (MCQs) on subtopics '{request.subtopicData}' which are related to topic '{request.topic}' in the domain '{request.domain}'. Ensure accuracy, clarity, and adherence to Bloom’s Taxonomy. Adhere to following guidelines:
+        prompt = f"""You are an expert-level question generator tasked with creating exactly {request.noOfQuestions} high-qaulity multiple-choice questions (MCQs) on subtopics '{request.subtopicData}' which are related to topic '{request.topic}' in the domain '{request.domain}'. Ensure accuracy, clarity, and adherence to Bloom’s Taxonomy. Adhere to following guidelines:
         
             ---
             ### *1. Topic, Subtopic and Domain Identification and Organization
@@ -264,6 +264,13 @@ def generate_question_api(request: QuestionGenerationRequest):
             - *Evaluate*: Judge based on criteria or standards.  
             - *Create*: Formulate new solutions or ideas.  
             - Sort questions in the order of Bloom's taxonomy levels: remember, understand, apply, analyze, evaluate, and create.  
+            - Assign BT-level as per below :-
+                Remember :- 0
+                Understand :- 1
+                Apply :- 2
+                Analyze :- 3
+                Evaluate :- 4
+                Create :- 5
             
             ---
             
@@ -288,7 +295,11 @@ def generate_question_api(request: QuestionGenerationRequest):
             ---
             
             ### *6. Difficulty Levels*  
-            - Assign one of three difficulty levels to each question: *Easy, **Intermediate, or **Hard*.  
+            - Assign one of three difficulty levels to each question: *Easy, **Intermediate, or **Hard*.
+            - Assign difficulty levels as per below :- 
+                Easy :- 0
+                Intermediate :- 1
+                Hard :- 2 
             - Ensure a balanced distribution of difficulty across questions.  
 
             ---
@@ -311,7 +322,7 @@ def generate_question_api(request: QuestionGenerationRequest):
                               {{ "optionName": "option3", "optionText": "..." }},
                               {{ "optionName": "option4", "optionText": "..." }}
                             ],
-                            "answer": "option2"
+                            "answerData": "option2"
                         }}
                     ]
                 }}
