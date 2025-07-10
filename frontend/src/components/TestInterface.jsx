@@ -62,8 +62,7 @@ export default function TestInterface() {
   const navigate = useNavigate();
   const { sessionId: urlSessionId } = useParams();
   const location = useLocation();
-  const { startMonitoring, stopMonitoring, requestFullscreen, setIsTestActive } =
-    useScreenMonitor();
+  const { startMonitoring, stopMonitoring, requestFullscreen, setIsTestActive, isFullScreen } = useScreenMonitor();
   const {
     submitTestWithRetry,
     formatAnswers: formatTestAnswers,
@@ -71,12 +70,7 @@ export default function TestInterface() {
   } = useTestSubmission();
 
   // Add the browser controls hook with fallback
-  const {
-    setTestSession,
-    isFullScreen,
-    startTest,
-    endTest,
-  } = useBrowserControls();
+  const { setTestSession, startTest, endTest } = useBrowserControls();
 
   const {
     warningCount,
@@ -97,6 +91,23 @@ export default function TestInterface() {
   const { logViolation, isLogging, startLogging, stopLogging } = useViolationLogger(sessionId, testData?.testId);
   const lastFullscreenState = useRef(true);
 
+  // Show fullscreen prompt when user exits fullscreen during test
+  useEffect(() => {
+    if (!isTestStarted) return;
+    if (!isFullScreen) {
+      setShowFullscreenPrompt(true);
+      console.log('[DEBUG][TestInterface] Showing fullscreen prompt');
+      // Log violation only once per exit event
+      if (lastFullscreenState.current) {
+        logViolation('fullscreen_exit', { message: 'User exited fullscreen during test' });
+      }
+    } else {
+      setShowFullscreenPrompt(false);
+      console.log('[DEBUG][TestInterface] Hiding fullscreen prompt');
+    }
+    lastFullscreenState.current = isFullScreen;
+  }, [isFullScreen, isTestStarted, logViolation]);
+
   // Start/stop violation logging with test
   useEffect(() => {
     if (isTestStarted && sessionId && testData?.testId) {
@@ -105,16 +116,6 @@ export default function TestInterface() {
       stopLogging();
     }
   }, [isTestStarted, sessionId, testData?.testId, startLogging, stopLogging]);
-
-  // Log violation when user exits fullscreen during test
-  useEffect(() => {
-    if (!isTestStarted || !isLogging) return;
-    if (lastFullscreenState.current && !isFullScreen) {
-      // User just exited fullscreen
-      logViolation('fullscreen_exit', { message: 'User exited fullscreen during test' });
-    }
-    lastFullscreenState.current = isFullScreen;
-  }, [isFullScreen, isTestStarted, isLogging, logViolation]);
 
   // Ensure sessionId is always an integer
   const setSessionIdSafe = (id) => {
@@ -902,6 +903,11 @@ export default function TestInterface() {
     }, 300);
     return () => clearInterval(interval);
   }, [isTestStarted, audioSessionEvents]);
+
+  // Debug: Log fullscreen and test state on every render
+  useEffect(() => {
+    console.log('[DEBUG][TestInterface] isFullScreen:', isFullScreen, 'isTestStarted:', isTestStarted, 'showFullscreenPrompt:', showFullscreenPrompt);
+  });
 
   // Render the appropriate content based on test state
   return (

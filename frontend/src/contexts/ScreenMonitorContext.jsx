@@ -35,7 +35,18 @@ export const ScreenMonitorProvider = ({ children }) => {
     // Initialize enhanced violation logger
     const violationLogger = useEnhancedViolationLogger(sessionId);
 
-    // Get the correct fullscreen method for the browser
+    // Ref to prevent multiple logs for a single fullscreen exit
+    const fullscreenExitHandledRef = useRef(false);
+
+    // Helper: Log all fullscreen element properties for debugging
+    const logFullscreenState = () => {
+        console.log('[DEBUG][ScreenMonitorContext] document.fullscreenElement:', document.fullscreenElement);
+        console.log('[DEBUG][ScreenMonitorContext] document.webkitFullscreenElement:', document.webkitFullscreenElement);
+        console.log('[DEBUG][ScreenMonitorContext] document.mozFullScreenElement:', document.mozFullScreenElement);
+        console.log('[DEBUG][ScreenMonitorContext] document.msFullscreenElement:', document.msFullscreenElement);
+    };
+
+    // Get the correct fullscreen element for the browser
     const getFullscreenElement = () => {
         return document.fullscreenElement ||
             document.webkitFullscreenElement ||
@@ -200,23 +211,32 @@ export const ScreenMonitorProvider = ({ children }) => {
     // Handle fullscreen change with retry mechanism
     useEffect(() => {
         const handleFullscreenChange = () => {
-            const isCurrentlyFullscreen = getFullscreenElement() !== null;
+            logFullscreenState();
+            const isCurrentlyFullscreen = !!getFullscreenElement();
             setIsFullScreen(isCurrentlyFullscreen);
+            console.log('[DEBUG][ScreenMonitorContext] fullscreenchange: isCurrentlyFullscreen:', isCurrentlyFullscreen, 'isTestActive:', isTestActive);
 
             if (!isCurrentlyFullscreen && isTestActive) {
-                handleWarning('fullscreen_exit');
-                // Log fullscreen exit violation
-                if (violationLogger) {
-                    violationLogger.logFullscreenExit();
+                if (!fullscreenExitHandledRef.current) {
+                    fullscreenExitHandledRef.current = true;
+                    console.log('[DEBUG][ScreenMonitorContext] Fullscreen exited during test. Logging violation and warning.');
+                    handleWarning('fullscreen_exit');
+                    // Log fullscreen exit violation
+                    if (violationLogger) {
+                        violationLogger.logFullscreenExit();
+                    } else {
+                        console.log('[DEBUG][ScreenMonitorContext] No violationLogger available');
+                    }
+                } else {
+                    console.log('[DEBUG][ScreenMonitorContext] Fullscreen exit already handled for this instance.');
                 }
-                
                 // Only retry if we're not already trying
                 if (!fullscreenRetryRef.current) {
-                fullscreenRetryRef.current = setInterval(() => {
-                    if (!getFullscreenElement() && isTestActive) {
-                        const element = document.documentElement;
-                        const requestFullscreen = getRequestFullscreenMethod(element);
-                        if (requestFullscreen) {
+                    fullscreenRetryRef.current = setInterval(() => {
+                        if (!getFullscreenElement() && isTestActive) {
+                            const element = document.documentElement;
+                            const requestFullscreen = getRequestFullscreenMethod(element);
+                            if (requestFullscreen) {
                                 requestFullscreen.call(element).catch(error => {
                                     console.error('Error retrying fullscreen:', error);
                                     // Clear the retry interval if we get an error
@@ -225,29 +245,45 @@ export const ScreenMonitorProvider = ({ children }) => {
                                         fullscreenRetryRef.current = null;
                                     }
                                 });
-                        }
-                    } else {
+                            }
+                        } else {
                             // Clear the retry interval if we're in fullscreen
                             if (fullscreenRetryRef.current) {
                                 clearInterval(fullscreenRetryRef.current);
                                 fullscreenRetryRef.current = null;
                             }
-                    }
+                        }
                     }, 1000); // Increased interval to 1 second to reduce conflicts
                 }
+            } else if (isCurrentlyFullscreen) {
+                // Reset the handled ref when user re-enters fullscreen
+                fullscreenExitHandledRef.current = false;
             }
         };
 
+        // Listen for fullscreenchange events on both document and document.documentElement
         document.addEventListener('fullscreenchange', handleFullscreenChange);
         document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
         document.addEventListener('mozfullscreenchange', handleFullscreenChange);
         document.addEventListener('MSFullscreenChange', handleFullscreenChange);
+        if (document.documentElement !== document) {
+            document.documentElement.addEventListener('fullscreenchange', handleFullscreenChange);
+            document.documentElement.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+            document.documentElement.addEventListener('mozfullscreenchange', handleFullscreenChange);
+            document.documentElement.addEventListener('MSFullscreenChange', handleFullscreenChange);
+        }
 
         return () => {
             document.removeEventListener('fullscreenchange', handleFullscreenChange);
             document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
             document.removeEventListener('mozfullscreenchange', handleFullscreenChange);
             document.removeEventListener('MSFullscreenChange', handleFullscreenChange);
+            if (document.documentElement !== document) {
+                document.documentElement.removeEventListener('fullscreenchange', handleFullscreenChange);
+                document.documentElement.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+                document.documentElement.removeEventListener('mozfullscreenchange', handleFullscreenChange);
+                document.documentElement.removeEventListener('MSFullscreenChange', handleFullscreenChange);
+            }
             if (fullscreenRetryRef.current) {
                 clearInterval(fullscreenRetryRef.current);
                 fullscreenRetryRef.current = null;
