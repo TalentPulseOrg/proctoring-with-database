@@ -166,7 +166,7 @@ async def manual_generate_question_api(
             2. Domain (a broad area of knowledge, learning, or skill development that encompasses related subjects or disciplines.) :- {domain} 
             3. Topic (a specific subject or theme that is studied or discussed within a broader subject or domain.) :- {topic}
             4. Subtopics (a more detailed and specific component of a topic that breaks down complex information into manageable parts for focused learning.) :- {subtopicData}
-            5. Number of questions (Exact no. of questions you are expected to generate) :- {noOfQuestions}
+            5. Number of questions (Exact no. of questions you are expected to generate) :- {noOfQuestions}. It is mandatory to generate exact given number of questions, not more not less.
           
         You are tasked with creating high quality multiple choice questions (MCQs) from provided extracted text. Make sure to adhere to extracted text for question generation. Adhere to following guidelines:
         
@@ -297,7 +297,7 @@ def generate_question_api(request: QuestionGenerationRequest):
             1. Domain (a broad area of knowledge, learning, or skill development that encompasses related subjects or disciplines.) :- {request.domain} 
             2. Topic (a specific subject or theme that is studied or discussed within a broader subject or domain.) :- {request.topic}
             3. Subtopics (a more detailed and specific component of a topic that breaks down complex information into manageable parts for focused learning.) :- {request.subtopicData}
-            4. Number of questions (Exact no. of questions you are expected to generate) :- {request.noOfQuestions}
+            4. Number of questions (Exact no. of questions you are expected to generate) :- {request.noOfQuestions}. It is mandatory to generate exact given number of questions, not more not less.
           
             You are tasked with creating high quality multiple choice questions (MCQs) from provided extracted text.  Adhere to following guidelines: 
            

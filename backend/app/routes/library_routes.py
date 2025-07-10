@@ -43,17 +43,23 @@ async def generate_questions_with_gemini(library_name: str, topic: str) -> Dict[
     genai.configure(api_key=api_key)
     model = genai.GenerativeModel('gemini-2.5-flash-lite-preview-06-17')
     prompt = f"""
-    You are an expert-level creating high quality multiple-choice questions (MCQs) libraries. Ensure accuracy, clarity, and adherence to Bloom’s Taxonomy. Adhere to following guidelines: 
+    You are an expert-level question generator for high quality multiple-choice questions (MCQs) libraries. Ensure accuracy, clarity, and adherence to Bloom’s Taxonomy. Adhere to the following STRICT requirements:
     
     ---
-    ### *1. Topic and Skill area identification and Organization*
+    ### *1. Skill Area and Question Count (MANDATORY)*
+    - You MUST generate exactly 5 skill areas for the topic '{topic}' in the context of the library '{library_name}'.
+    - For each skill area, you MUST generate exactly 5 multiple-choice questions. No more, no less.
+    - If you do not generate exactly 5 skill areas, or exactly 5 questions per skill area, your output will be rejected.
+    - Do NOT combine, merge, or skip any skill areas or questions. Do NOT generate extra.
+    
+    ### *2. Topic and Skill area identification and Organization*
     - Generate questions only for the provided topic {topic}.
     - Organize questions by topic, ensuring equal coverage across all topics.
     - Given the library name: '{library_name}' and topic: '{topic}',
       - Identify 5 skill areas that are important for this topic in the context of the library.
       - For each skill area, generate 5 multiple-choice questions.
     
-    ### *2. Bloom's Taxonomy Coverage*
+    ### *3. Bloom's Taxonomy Coverage*
     - Ensure proper distribution of all six levels of Bloom's taxonomy as per the following chart:
         Remember : 10-15 percent
         Understand : 15-20 percent
@@ -72,61 +78,61 @@ async def generate_questions_with_gemini(library_name: str, topic: str) -> Dict[
     
     ---
     
-    ### *3. Question Design*  
+    ### *4. Question Design*  
     - Each question must be clear, concise, and self-contained.  
     - For applied questions, include *code snippets* where relevant, written in programming languages suitable to the "{topic}" (e.g., Python, JavaScript, etc.).  
     - Indicate the language explicitly in the "code" field.  
     - Ensure code snippets are executable and produce results aligned with the correct answer. 
     ---
     
-    ### *4. Skills coverage
-    - If comma seperated skills or topics are provided, ensure questions of each comma seperated skill or topic are included.
+    ### *5. Skills coverage
+    - If comma separated skills or topics are provided, ensure questions of each comma separated skill or topic are included.
     - Generate equal number of questions of each skill or topic.
     - Ensure generated questions are relevant to provided skills or topics.
 
-    ### *5. Options and Correct Answer*  
-    - Provide *four options* (option1, option2, option3, option4) for each question.  
-    - Systematically alternate the correct option between "A", "B", "C", and "D" across the set.  
+    ### *6. Options and Correct Answer*  
+    - Provide *four options* (option1, option2, option3, option4) for each question.
+    - The optionName for each option must be exactly 'option1', 'option2', 'option3', 'option4' (not A, B, C, D or any other value).
+    - The answerData should be one of: 'option1', 'option2', 'option3', 'option4'.
+    - Systematically alternate the correct option between 'option1', 'option2', 'option3', and 'option4' across the set.  
     - Design *distractor options* (incorrect answers) to be plausible, closely related to the correct answer, and capable of challenging critical thinking. 
     
     ---
     
-    ### *6. Difficulty Levels*  
+    ### *7. Difficulty Levels*  
     - Assign one of three difficulty levels to each question: *Easy, **Intermediate, or **Hard*.  
     - Ensure a balanced distribution of difficulty across questions. 
     
     ---
     
-    ### *7. JSON Output Format*  
+    ### *8. JSON Output Format*  
     Strictly adhere to the following JSON structure:
     {{
       "skillAreas": [
         {{
           "skillAreaName": "...",
-          "questionData": {{
-            "questions": [
-              {{
-                "questionText": "...",
-                "positiveMarking": 1,
-                "negativeMarking": 0,
-                "timeToSolve": 10,
-                "BTLevel": 1,
-                "difficulty": 1,
-                "optionData": [
-                  {{"optionName": "option1", "optionText": "..."}},
-                  {{"optionName": "option2", "optionText": "..."}},
-                  {{"optionName": "option3", "optionText": "..."}},
-                  {{"optionName": "option4", "optionText": "..."}},
-                ],
-                "answerData": "option2"
-              }}
-            ]
-          }}
+          "questionData": [
+            {{
+              "questionText": "...",
+              "positiveMarking": 1,
+              "negativeMarking": 0,
+              "timeToSolve": 10,
+              "BTLevel": 1,
+              "difficulty": 1,
+              "optionData": [
+                {{"optionName": "option1", "optionText": "..."}},
+                {{"optionName": "option2", "optionText": "..."}},
+                {{"optionName": "option3", "optionText": "..."}},
+                {{"optionName": "option4", "optionText": "..."}}
+              ],
+              "answerData": ["option2"]
+            }}
+          ]
         }}
       ]
     }}
 
-    ### *8. Verification Requirements*  
+    ### *9. Verification Requirements*  
     - *Accuracy*: Verify the correctness of the provided correct option.  
     - *Code Execution*: For code-based questions, execute the code snippets in a sandbox environment to confirm results.  
     - *Distractor Quality*: Ensure incorrect options are plausible but not correct.  
@@ -134,7 +140,7 @@ async def generate_questions_with_gemini(library_name: str, topic: str) -> Dict[
     
     ---
     
-    ### *9. Additional Guidelines*  
+    ### *10. Additional Guidelines*  
     - Avoid ambiguity or overly complex jargon in questions and options.  
     - Use professional language and ensure all questions align with the topic and subtopic.  
     - Validate all Q&A pairs before finalizing.
@@ -166,14 +172,14 @@ async def create_library(request: LibraryCreateRequest):
         raise HTTPException(status_code=500, detail="AI did not return any skill areas.")
     response = []
     for idx, skill_area in enumerate(skill_areas, start=1):
-        questions = skill_area.get("questionData", {}).get("questions", [])
-        question_ids = skill_area.get("questionData", {}).get("questionIds", list(range(1, len(questions) + 1)))
+        questions = skill_area.get("questionData", [])
+        # Ensure answerData is always a list
+        for q in questions:
+            if "answerData" in q and not isinstance(q["answerData"], list):
+                q["answerData"] = [q["answerData"]]
         response.append({
             "skillAreaId": idx,
             "skillAreaName": skill_area.get("skillAreaName", f"Skill Area {idx}"),
-            "questionData": {
-                "questions": questions,
-                "questionIds": question_ids
-            }
+            "questionData": questions
         })
     return response 
