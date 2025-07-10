@@ -28,13 +28,15 @@ export const WarningProvider = ({ children }) => {
   }, [warningCount, isExhaustionHandled, onWarningExhausted]);
 
   const handleViolation = useCallback((type, details) => {
+    console.log('WarningContext: handleViolation called with type:', type, 'isWarningSystemActive:', isWarningSystemActive, 'isExhaustionHandled:', isExhaustionHandled);
     if (isWarningSystemActive && !isExhaustionHandled) {
       setWarningCount(prev => {
-        if (prev > 0) {
-          return prev - 1;
-        }
-        return prev;
+        const newCount = prev > 0 ? prev - 1 : prev;
+        console.log('WarningContext: Warning count decremented from', prev, 'to', newCount);
+        return newCount;
       });
+    } else {
+      console.log('WarningContext: Warning system not active or exhaustion already handled');
     }
   }, [isWarningSystemActive, isExhaustionHandled]);
 
@@ -43,11 +45,13 @@ export const WarningProvider = ({ children }) => {
   }, []);
 
   const startTest = useCallback(() => {
+    console.log('WarningContext: startTest called, activating warning system');
     setIsWarningSystemActive(true);
     setIsTestActive(true);
     setHasInitialized(true);
     setWarningCount(MAX_WARNINGS);
     setIsExhaustionHandled(false);
+    console.log('WarningContext: Warning system activated, warning count reset to', MAX_WARNINGS);
   }, []);
 
   const endTest = useCallback(() => {
