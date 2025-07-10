@@ -145,7 +145,9 @@ async def manual_generate_question_api(
     domain: str = Form(...),
     topic: str = Form(...),
     subtopicData: List[str] = Form(...),
-    noOfQuestions: int = Form(...)
+    noOfQuestions: int = Form(...),
+    difficulty: Optional[str] = Form(None),
+    btLevel: Optional[str] = Form(None)
 ):
     if not genai_model:
         raise HTTPException(status_code=500, detail="AI model not configured. Set GEMINI_API_KEY.")
