@@ -37,7 +37,7 @@ class QuestionData(BaseModel):
     answer: str
 
 class QuestionGenerationResponse(BaseModel):
-    questionData: dict
+    questionData: list
 
 # Load environment variables
 load_dotenv()
@@ -110,29 +110,34 @@ def parse_gemini_response(response_text):
         # Handle both dict and list for 'questionData'
         if isinstance(data, dict):
             if 'questions' in data:
-                # Map answerData to answer if present
+                # Map answerData to answer if present, and remove 'answer'
                 for q in data['questions']:
                     if 'answerData' in q:
                         q['answer'] = q['answerData'][0] if isinstance(q['answerData'], list) else q['answerData']
-                return data
+                    if 'answer' in q:
+                        del q['answer']
+                return data['questions']
             if 'questionData' in data:
                 qd = data['questionData']
                 if isinstance(qd, dict) and 'questions' in qd:
                     for q in qd['questions']:
                         if 'answerData' in q:
                             q['answer'] = q['answerData'][0] if isinstance(q['answerData'], list) else q['answerData']
-                    return qd
+                        if 'answer' in q:
+                            del q['answer']
+                    return qd['questions']
                 if isinstance(qd, list):
-                    # If it's a list, wrap in dict
                     for q in qd:
                         if 'answerData' in q:
                             q['answer'] = q['answerData'][0] if isinstance(q['answerData'], list) else q['answerData']
-                    return {'questions': qd}
+                        if 'answer' in q:
+                            del q['answer']
+                    return qd
         logger.error("Response missing 'questions' key")
-        return {"questions": []}
+        return []
     except Exception as e:
         logger.error(f"Error parsing Gemini response: {str(e)}")
-        return {"questions": []}
+        return []
 
 @router.post("/api/v1/questions/manual/generate", response_model=QuestionGenerationResponse)
 async def manual_generate_question_api(
@@ -207,8 +212,10 @@ async def manual_generate_question_api(
             - Include subtopics associated with a question in output format. Make sure to include subtopics only from provided subtopicData input. Strictly avoid any additional subtopics. If multiple subtopics are possible, then return an array.
 
         ### *5. Options and Correct Answer*  
-        - Provide *four options* (option1, option2, option3, option4) for each question.  
-        - Systematically alternate the correct option between "A", "B", "C", and "D" across the set.  
+        - Provide *four options* (option1, option2, option3, option4) for each question.
+        - The optionName for each option must be exactly 'option1', 'option2', 'option3', 'option4' (not A, B, C, D or any other value).
+        - The answerData should be one of: 'option1', 'option2', 'option3', 'option4'.
+        - Systematically alternate the correct option between 'option1', 'option2', 'option3', and 'option4' across the set.  
         - Design *distractor options* (incorrect answers) to be plausible, closely related to the correct answer, and capable of challenging critical thinking.  
 
         ---
@@ -230,8 +237,7 @@ async def manual_generate_question_api(
         ### *8. JSON Output Format*  
         Strictly adhere to the following JSON structure:
         {{
-            "questionData": {{
-                "questions": [
+            "questionData": [
                     {{
                         "questionText": "Question text here...",
                         "positiveMarking": 1,
@@ -248,8 +254,7 @@ async def manual_generate_question_api(
                         ],
                         "answerData": ["option2"]
                     }}
-                ]
-            }}
+            ]
         }}
 
         ### *9. Verification Requirements*  
@@ -266,7 +271,6 @@ async def manual_generate_question_api(
         - Validate all Q&A pairs before finalizing.      
         
         """
-
         response = genai_model.generate_content(prompt)
         data = parse_gemini_response(response.text)
         # Clean up the uploaded file
@@ -342,8 +346,10 @@ def generate_question_api(request: QuestionGenerationRequest):
             - Include subtopics associated with a question in output format. Make sure to include subtopics only from provided subtopicData input. Strictly avoid any additional subtopics. If multiple subtopics are possible, then return an array.
 
             ### *5. Options and Correct Answer*  
-            - Provide *four options* (option1, option2, option3, option4) for each question.  
-            - Systematically alternate the correct option between "A", "B", "C", and "D" across the set.  
+            - Provide *four options* (option1, option2, option3, option4) for each question.
+            - The optionName for each option must be exactly 'option1', 'option2', 'option3', 'option4' (not A, B, C, D or any other value).
+            - The answerData should be one of: 'option1', 'option2', 'option3', 'option4'.
+            - Systematically alternate the correct option between 'option1', 'option2', 'option3', and 'option4' across the set.  
             - Design *distractor options* (incorrect answers) to be plausible, closely related to the correct answer, and capable of challenging critical thinking.  
 
             ---
