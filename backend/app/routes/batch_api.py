@@ -107,12 +107,27 @@ def parse_gemini_response(response_text):
         if start_idx >= 0 and end_idx > start_idx:
             json_str = json_str[start_idx:end_idx]
         data = json.loads(json_str)
-        # Check for 'questions' at the top level
-        if 'questions' in data:
-            return data
-        # Check for 'questionData' with 'questions' inside
-        if 'questionData' in data and 'questions' in data['questionData']:
-            return data['questionData']
+        # Handle both dict and list for 'questionData'
+        if isinstance(data, dict):
+            if 'questions' in data:
+                # Map answerData to answer if present
+                for q in data['questions']:
+                    if 'answerData' in q:
+                        q['answer'] = q['answerData'][0] if isinstance(q['answerData'], list) else q['answerData']
+                return data
+            if 'questionData' in data:
+                qd = data['questionData']
+                if isinstance(qd, dict) and 'questions' in qd:
+                    for q in qd['questions']:
+                        if 'answerData' in q:
+                            q['answer'] = q['answerData'][0] if isinstance(q['answerData'], list) else q['answerData']
+                    return qd
+                if isinstance(qd, list):
+                    # If it's a list, wrap in dict
+                    for q in qd:
+                        if 'answerData' in q:
+                            q['answer'] = q['answerData'][0] if isinstance(q['answerData'], list) else q['answerData']
+                    return {'questions': qd}
         logger.error("Response missing 'questions' key")
         return {"questions": []}
     except Exception as e:
