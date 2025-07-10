@@ -136,13 +136,24 @@ async def manual_generate_question_api(
         pdf_path = os.path.join(UPLOAD_FOLDER, filename)
         pdf_text = extract_pdf_text(pdf_path)
         # Generate prompt from PDF text
-        prompt = f"""You are an expert-level question generator tasked with creating exactly {noOfQuestions} high-quality multiple-choice questions (MCQs) for subtopics '{subtopicData}' related to topic '{topic}' in domain '{domain}': {pdf_text}. Ensure accuracy, clarity, and adherence to Bloom’s Taxonomy. Adhere to following guidelines:
+        prompt = f"""You are an expert-level question generator. 
+        
+        ### *0. You are provided with following inputs :-
+
+            1. Text extracted from manual (Text from which you have to generate questions.):- {pdf_text}
+            2. Domain (a broad area of knowledge, learning, or skill development that encompasses related subjects or disciplines.) :- {domain} 
+            3. Topic (a specific subject or theme that is studied or discussed within a broader subject or domain.) :- {topic}
+            4. Subtopics (a more detailed and specific component of a topic that breaks down complex information into manageable parts for focused learning.) :- {subtopicData}
+            5. Number of questions (Exact no. of questions you are expected to generate) :- {noOfQuestions}
+          
+        You are tasked with creating high quality multiple choice questions (MCQs) from provided extracted text. Make sure to adhere to extracted text for question generation. Adhere to following guidelines:
         
         ---
         ### *1. Topic, Subtopic, and Domain Identification and Organization
         - Generate questions only for the provided subtopics {subtopicData} which are related to topic {topic} and in the domain {domain}.
         - Organize questions by subtopics, ensuring equal coverage across all subtopics.
-        
+        ---
+
         ### *2. Bloom's Taxonomy Coverage*
         - Ensure proper distribution of all six levels of Bloom's taxonomy as per the following chart:
             Remember : 10-15 percent
@@ -174,10 +185,10 @@ async def manual_generate_question_api(
         - Ensure code snippets are executable and produce results aligned with the correct answer.  
         ---
         
-        ### *4. Skills coverage
-        - If comma separated skills or topic are provided, ensure questions of each comma separated skill are included.
-        - Generate equal number of questions of each skill or topic.
-        - Ensure generated questions are relevant to provided skills or topic.
+        ### *4. Subtopics coverage
+        - If comma seperated subtopics or topics are provided, ensure questions of each comma seperated subtopic or topic are included.
+        - Generate equal number of questions of each subtopic or topic.
+        - Ensure generated questions are relevant to provided subtopics or topics
 
         ### *5. Options and Correct Answer*  
         - Provide *four options* (option1, option2, option3, option4) for each question.  
@@ -234,6 +245,7 @@ async def manual_generate_question_api(
         - Validate all Q&A pairs before finalizing.      
         
         """
+
         response = genai_model.generate_content(prompt)
         data = parse_gemini_response(response.text)
         # Clean up the uploaded file
@@ -251,7 +263,17 @@ def generate_question_api(request: QuestionGenerationRequest):
     if not genai_model:
         raise HTTPException(status_code=500, detail="AI model not configured. Set GEMINI_API_KEY.")
     try:
-        prompt = f"""You are an expert-level question generator tasked with creating exactly {request.noOfQuestions} high-qaulity multiple-choice questions (MCQs) on subtopics '{request.subtopicData}' which are related to topic '{request.topic}' in the domain '{request.domain}'. Ensure accuracy, clarity, and adherence to Bloom’s Taxonomy. Adhere to following guidelines:
+        prompt = f"""You are an expert-level question generator.
+         
+            ### *0. You are provided with following inputs :-
+
+            1. Domain (a broad area of knowledge, learning, or skill development that encompasses related subjects or disciplines.) :- {request.domain} 
+            2. Topic (a specific subject or theme that is studied or discussed within a broader subject or domain.) :- {request.topic}
+            3. Subtopics (a more detailed and specific component of a topic that breaks down complex information into manageable parts for focused learning.) :- {request.subtopicData}
+            4. Number of questions (Exact no. of questions you are expected to generate) :- {request.noOfQuestions}
+          
+            You are tasked with creating high quality multiple choice questions (MCQs) from provided extracted text.  Adhere to following guidelines: 
+           
         
             ---
             ### *1. Topic, Subtopic and Domain Identification and Organization
@@ -292,10 +314,10 @@ def generate_question_api(request: QuestionGenerationRequest):
 
             ---
             
-            ### *4. Skills coverage
-            - If comma seperated skills or topics are provided, ensure questions of each comma seperated skill or topic are included.
-            - Generate equal number of questions of each skill or topic.
-            - Ensure generated questions are relevant to provided skills or topics.
+            ### *4. Subtopics coverage
+            - If comma seperated subtopics or topics are provided, ensure questions of each comma seperated subtopic or topic are included.
+            - Generate equal number of questions of each subtopic or topic.
+            - Ensure generated questions are relevant to provided subtopics or topics.
 
             ### *5. Options and Correct Answer*  
             - Provide *four options* (option1, option2, option3, option4) for each question.  
