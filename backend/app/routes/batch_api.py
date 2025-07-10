@@ -186,9 +186,10 @@ async def manual_generate_question_api(
         ---
         
         ### *4. Subtopics coverage
-        - If comma seperated subtopics or topics are provided, ensure questions of each comma seperated subtopic or topic are included.
-        - Generate equal number of questions of each subtopic or topic.
-        - Ensure generated questions are relevant to provided subtopics or topics
+            - If comma seperated subtopics or topics are provided, ensure questions of each comma seperated subtopic or topic are included.
+            - Generate equal number of questions of each subtopic or topic.
+            - Ensure generated questions are relevant to provided subtopics or topics.
+            - Include subtopics associated with a question in output format. Make sure to include subtopics only from provided subtopicData input. Strictly avoid any additional subtopics. If multiple subtopics are possible, then return an array.
 
         ### *5. Options and Correct Answer*  
         - Provide *four options* (option1, option2, option3, option4) for each question.  
@@ -206,8 +207,12 @@ async def manual_generate_question_api(
         - Ensure a balanced distribution of difficulty across questions.  
 
         ---
+
+        ### *7. Time to solve*
+            - Assign time required to solve the question according to difficulty level and BT Level of the question
+            - Ensure time to solve is realistic and correct.
         
-        ### *7. JSON Output Format*  
+        ### *8. JSON Output Format*  
         Strictly adhere to the following JSON structure:
         {{
             "questionData": {{
@@ -216,22 +221,23 @@ async def manual_generate_question_api(
                         "questionText": "Question text here...",
                         "positiveMarking": 1,
                         "negativeMarking": 0,
-                        "timeToSolve": 10,
+                        "timeToSolve": 2,
                         "BTLevel": 1,
                         "difficulty": 1,
+                        "subtopicData" : [" "," "],
                         "optionData": [
                           {{ "optionName": "option1", "optionText": "..." }},
                           {{ "optionName": "option2", "optionText": "..." }},
                           {{ "optionName": "option3", "optionText": "..." }},
                           {{ "optionName": "option4", "optionText": "..." }}
                         ],
-                        "answerData": "option2"
+                        "answerData": ["option2"]
                     }}
                 ]
             }}
         }}
 
-        ### *8. Verification Requirements*  
+        ### *9. Verification Requirements*  
         - *Accuracy*: Verify the correctness of the provided correct option.  
         - *Code Execution*: For code-based questions, execute the code snippets in a sandbox environment to confirm results.  
         - *Distractor Quality*: Ensure incorrect options are plausible but not correct.  
@@ -239,7 +245,7 @@ async def manual_generate_question_api(
 
         ---
         
-        ### *9. Additional Guidelines*  
+        ### *10. Additional Guidelines*  
         - Avoid ambiguity or overly complex jargon in questions and options.  
         - Use professional language and ensure all questions align with the topic and subtopic.  
         - Validate all Q&A pairs before finalizing.      
@@ -318,6 +324,7 @@ def generate_question_api(request: QuestionGenerationRequest):
             - If comma seperated subtopics or topics are provided, ensure questions of each comma seperated subtopic or topic are included.
             - Generate equal number of questions of each subtopic or topic.
             - Ensure generated questions are relevant to provided subtopics or topics.
+            - Include subtopics associated with a question in output format. Make sure to include subtopics only from provided subtopicData input. Strictly avoid any additional subtopics. If multiple subtopics are possible, then return an array.
 
             ### *5. Options and Correct Answer*  
             - Provide *four options* (option1, option2, option3, option4) for each question.  
@@ -332,35 +339,38 @@ def generate_question_api(request: QuestionGenerationRequest):
                 Easy :- 0
                 Intermediate :- 1
                 Hard :- 2 
-            - Ensure a balanced distribution of difficulty across questions.  
+            - Ensure a balanced distribution of difficulty across questions.
+
+            ### *7. Time to solve*
+            - Assign time required to solve the question according to difficulty level and BT Level of the question
+            - Ensure time to solve is realistic and correct.  
 
             ---
         
-            ### *7. JSON Output Format*  
+            ### *8. JSON Output Format*  
             Strictly adhere to the following JSON structure:
             {{
-                "questionData": {{
-                    "questions": [
+                "questionData": [
                         {{
                             "questionText": "Question text here...",
                             "positiveMarking": 1,
                             "negativeMarking": 0,
-                            "timeToSolve": 10,
+                            "timeToSolve": 2,
                             "BTLevel": 1,
                             "difficulty": 1,
+                            "subtopicData" : [" "," "],
                             "optionData": [
                               {{ "optionName": "option1", "optionText": "..." }},
                               {{ "optionName": "option2", "optionText": "..." }},
                               {{ "optionName": "option3", "optionText": "..." }},
                               {{ "optionName": "option4", "optionText": "..." }}
                             ],
-                            "answerData": "option2"
+                            "answerData": ["option2"]
                         }}
-                    ]
-                }}
+                ]
             }}
 
-            ### *8. Verification Requirements*  
+            ### *9. Verification Requirements*  
             - *Accuracy*: Verify the correctness of the provided correct option.  
             - *Code Execution*: For code-based questions, execute the code snippets in a sandbox environment to confirm results.  
             - *Distractor Quality*: Ensure incorrect options are plausible but not correct.  
@@ -368,7 +378,7 @@ def generate_question_api(request: QuestionGenerationRequest):
 
             ---
 
-            ### *9. Additional Guidelines*  
+            ### *10. Additional Guidelines*  
             - Avoid ambiguity or overly complex jargon in questions and options.  
             - Use professional language and ensure all questions align with the topic and subtopic.  
             - Validate all Q&A pairs before finalizing.
