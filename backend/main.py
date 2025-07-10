@@ -64,27 +64,27 @@ except Exception as e:
     logger.warning("Continuing without recreating tables.")
 
 # Create a default admin user if none exists
-try:
-    logger.warning("Creating default admin user if needed...")
-    create_default_admin()
-    logger.warning("Default user check completed.")
-except Exception as e:
-    logger.error(f"Failed to create default admin: {str(e)}")
-    logger.warning("Continuing without creating default admin.")
+# try:
+#     logger.warning("Creating default admin user if needed...")
+#     create_default_admin()
+#     logger.warning("Default user check completed.")
+# except Exception as e:
+#     logger.error(f"Failed to create default admin: {str(e)}")
+#     logger.warning("Continuing without creating default admin.")
 
 # Grant permissions to the SQL user for the tables - but catch any errors
-try:
-    logger.warning("Fixing SQL permissions...")
-    # Try to use our comprehensive permission fix script first
-    if 'fix_permissions_with_windows_auth' in locals():
-        fix_permissions_with_windows_auth()
-    else:
-        # Fall back to the original method
-        grant_table_permissions()
-    logger.warning("Permissions granted successfully.")
-except Exception as e:
-    logger.error(f"Failed to grant permissions: {str(e)}")
-    logger.warning("Continuing anyway, but there might be permission issues.")
+# try:
+#     logger.warning("Fixing SQL permissions...")
+#     # Try to use our comprehensive permission fix script first
+#     if 'fix_permissions_with_windows_auth' in locals():
+#         fix_permissions_with_windows_auth()
+#     else:
+#         # Fall back to the original method
+#         grant_table_permissions()
+#     logger.warning("Permissions granted successfully.")
+# except Exception as e:
+#     logger.error(f"Failed to grant permissions: {str(e)}")
+#     logger.warning("Continuing anyway, but there might be permission issues.")
 
 app = FastAPI()
 

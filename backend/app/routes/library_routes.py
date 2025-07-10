@@ -102,7 +102,6 @@ async def generate_questions_with_gemini(library_name: str, topic: str) -> Dict[
     {{
       "skillAreas": [
         {{
-          "skillAreaId":1,
           "skillAreaName": "...",
           "questionData": {{
             "questions": [
@@ -119,10 +118,9 @@ async def generate_questions_with_gemini(library_name: str, topic: str) -> Dict[
                   {{"optionName": "option3", "optionText": "..."}},
                   {{"optionName": "option4", "optionText": "..."}},
                 ],
-                "answer": "option2"
+                "answerData": "option2"
               }}
-            ],
-            "questionIds":[1]
+            ]
           }}
         }}
       ]
