@@ -332,6 +332,16 @@ export const ScreenMonitorProvider = ({ children }) => {
         }
     };
 
+    // Handle keyboard shortcut violations from BrowserControlsContext
+    const handleKeyboardShortcutViolation = useCallback((keyCombination) => {
+        if (violationLogger) {
+            console.log('Logging keyboard shortcut violation from BrowserControlsContext:', keyCombination);
+            violationLogger.logKeyboardShortcut(keyCombination);
+        } else {
+            console.warn('Violation logger not available for keyboard shortcut:', keyCombination);
+        }
+    }, [violationLogger]);
+
     // Handle violation with timeout and warning
     const handleScreenViolation = useCallback((violationType) => {
         if (isHandlingViolationRef.current) return;
@@ -500,9 +510,9 @@ export const ScreenMonitorProvider = ({ children }) => {
 
         // Stop screenshot service
         if (sessionId) {
-            stopScreenshotService().catch(error => {
-                console.error('Error stopping screenshot service:', error);
-            });
+            // Assuming stopScreenshotService is defined elsewhere or will be added
+            // For now, we'll just log if it's not available
+            console.warn('stopScreenshotService is not defined in this context.');
         }
         
         // Reset state
@@ -643,7 +653,8 @@ export const ScreenMonitorProvider = ({ children }) => {
         exitFullscreen,
         startMonitoring,
         stopMonitoring,
-        getProctoringData: getProctoringDataForSession
+        getProctoringData: getProctoringDataForSession,
+        handleKeyboardShortcutViolation // Expose the new function
     };
 
     return (

@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useEffect, useCallback, useState, useRef } from 'react';
 import { useScreenMonitor } from './ScreenMonitorContext';
-import { recordViolation } from '../api/api';
 import { useNavigate } from 'react-router-dom';
 import { useWarning } from './WarningContext';
 
@@ -15,12 +14,19 @@ export const useBrowserControls = () => {
 };
 
 export const BrowserControlsProvider = ({ children }) => {
-  const { handleViolation: screenMonitorHandleViolation, isTestActive } = useScreenMonitor() || {};
+  const { handleViolation: screenMonitorHandleViolation, isTestActive, sessionId: screenMonitorSessionId, handleKeyboardShortcutViolation } = useScreenMonitor() || {};
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [sessionId, setSessionId] = useState(null);
   const screenMonitorHandleViolationRef = useRef(null);
   const navigate = useNavigate();
   const { handleViolation: handleWarning } = useWarning();
+
+  // Update sessionId when screenMonitorSessionId changes
+  useEffect(() => {
+    if (screenMonitorSessionId) {
+      setSessionId(screenMonitorSessionId);
+    }
+  }, [screenMonitorSessionId]);
 
   // Create a safe version of handleViolation that won't crash if undefined
   const handleViolation = useCallback((violationType, details = {}) => {
@@ -32,22 +38,9 @@ export const BrowserControlsProvider = ({ children }) => {
       screenMonitorHandleViolationRef.current(violationType, details);
     }
     
-    // Record violation if session ID is available
-    if (sessionId) {
-      recordViolation({
-        session_id: sessionId,
-        violation_type: violationType,
-        details: {
-          ...details,
-          timestamp: new Date().toISOString()
-        },
-        timestamp: new Date().toISOString()
-      }).catch(err => console.error(`Failed to record ${violationType} violation:`, err));
-    }
-    
     // Handle warning
     handleWarning(violationType, details);
-  }, [isTestActive, sessionId, handleWarning]);
+  }, [isTestActive, handleWarning]);
 
   // Block copy/paste
   const preventCopyPaste = useCallback((e) => {
@@ -76,9 +69,15 @@ export const BrowserControlsProvider = ({ children }) => {
       )
     ) {
       e.preventDefault();
-      handleViolation('keyboard_shortcut', { key: e.key });
+      const keyCombination = `${e.ctrlKey ? 'Ctrl+' : ''}${e.metaKey ? 'Meta+' : ''}${e.key.toUpperCase()}`;
+      handleViolation('keyboard_shortcut', { key: e.key, keyCombination });
+      
+      // Log keyboard shortcut violation using enhanced violation logger
+      if (handleKeyboardShortcutViolation) {
+        handleKeyboardShortcutViolation(keyCombination);
+      }
     }
-  }, [handleViolation, isTestActive]);
+  }, [handleViolation, isTestActive, handleKeyboardShortcutViolation]);
 
   // Block context menu
   const preventContextMenu = useCallback((e) => {
