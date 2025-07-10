@@ -18,7 +18,7 @@ export const ScreenMonitorProvider = ({ children }) => {
     const [isMonitoring, setIsMonitoring] = useState(false);
     const [isFullScreen, setIsFullScreen] = useState(false);
     const [error, setError] = useState(null);
-    const [warningCount, setWarningCount] = useState(3);
+    // Removed unused warningCount state - using WarningContext instead
     const [isTestActive, setIsTestActive] = useState(false);
     const [showWarning, setShowWarning] = useState(false);
     const [warningMessage, setWarningMessage] = useState('');
@@ -255,12 +255,25 @@ export const ScreenMonitorProvider = ({ children }) => {
         };
     }, [isTestActive, handleWarning]);
 
+    // Ref to prevent double warning decrement on tab switch (blur + visibilitychange)
+    const lastViolationRef = useRef({ type: null, timestamp: 0 });
+    const VIOLATION_DEBOUNCE_MS = 300;
+
     // Handle visibility change (tab switch)
     useEffect(() => {
+        console.log('ScreenMonitorContext: Setting up visibility change handler, isTestActive:', isTestActive);
         const handleVisibilityChange = () => {
             if (document.hidden && isTestActive) {
-                console.log('Tab switch detected, session ID:', sessionId, 'isLogging:', violationLogger?.isLogging);
-                handleWarning('tab_switch');
+                const now = Date.now();
+                // If last violation was a blur within debounce window, skip this
+                if (lastViolationRef.current.type === 'blur' && (now - lastViolationRef.current.timestamp) < VIOLATION_DEBOUNCE_MS) {
+                    console.log('Skipping tab_switch warning due to recent blur event');
+                } else {
+                    console.log('ScreenMonitorContext: Calling handleWarning for tab_switch');
+                    handleWarning('tab_switch');
+                    lastViolationRef.current = { type: 'tab_switch', timestamp: now };
+                    console.log('Warning decremented for tab switch');
+                }
                 // Log tab switch violation
                 if (violationLogger) {
                     console.log('Calling violationLogger.logTabSwitch()');
@@ -281,13 +294,23 @@ export const ScreenMonitorProvider = ({ children }) => {
 
         document.addEventListener('visibilitychange', handleVisibilityChange);
         return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-    }, [isTestActive]); // Removed violationLogger from dependencies
+    }, [isTestActive, handleWarning]);
 
     // Handle window blur
     useEffect(() => {
+        console.log('ScreenMonitorContext: Setting up window blur handler, isTestActive:', isTestActive);
         const handleBlur = () => {
             if (isTestActive) {
-                handleWarning('window_blur');
+                const now = Date.now();
+                // If last violation was a tab_switch within debounce window, skip this
+                if (lastViolationRef.current.type === 'tab_switch' && (now - lastViolationRef.current.timestamp) < VIOLATION_DEBOUNCE_MS) {
+                    console.log('Skipping window_blur warning due to recent tab_switch event');
+                } else {
+                    console.log('ScreenMonitorContext: Calling handleWarning for window_blur');
+                    handleWarning('window_blur');
+                    lastViolationRef.current = { type: 'blur', timestamp: now };
+                    console.log('Warning decremented for window blur');
+                }
                 // Log window blur violation
                 if (violationLogger) {
                     violationLogger.logWindowBlur();
@@ -307,7 +330,7 @@ export const ScreenMonitorProvider = ({ children }) => {
 
         window.addEventListener('blur', handleBlur);
         return () => window.removeEventListener('blur', handleBlur);
-    }, [isTestActive]); // Removed violationLogger from dependencies
+    }, [isTestActive, handleWarning]);
 
     // Record violation to API
     const recordViolationToAPI = async (violationType) => {
@@ -642,7 +665,7 @@ export const ScreenMonitorProvider = ({ children }) => {
         isMonitoring,
         isFullScreen,
         error,
-        warningCount,
+        // Removed unused warningCount from value
         isTestActive,
         setIsTestActive,
         showWarning,

@@ -484,6 +484,11 @@ export default function TestInterface() {
       if (isFullscreenRequested) return;
       setIsFullscreenRequested(true);
       setError(null);
+      
+      // Start warning system BEFORE starting monitoring
+      startWarningSystem();
+      console.log("Warning system started");
+      
       // Start monitoring which will handle fullscreen
       const monitoringStarted = await startMonitoring(testData.testId);
       if (!monitoringStarted) {
@@ -521,10 +526,13 @@ export default function TestInterface() {
       }
       await startScreenshotService({ session_id: actualSessionId, test_id: testData.testId });
       setIsScreenshotServiceActive(true);
-      startWarningSystem();
+      // Add a small delay to ensure warning system is properly initialized
+      await new Promise(resolve => setTimeout(resolve, 100));
       setTimeLeft(testData.duration * 60);
       setIsTestStarted(true);
+      // Set test as active AFTER warning system is started
       setIsTestActive(true); // <-- Start logging for tab/blur/shortcut
+      console.log("Test is now active, monitoring started");
       setError(null);
       setIsFullscreenRequested(false);
     } catch (error) {
@@ -684,8 +692,8 @@ export default function TestInterface() {
         try {
           await startTest();
           if (mounted) {
-            startWarningSystem();
-            console.log("Test started, warning system initialized");
+            // startWarningSystem() is already called in handleEnterFullscreen
+            console.log("Test started, monitoring initialized");
           }
         } catch (error) {
           console.error("Error initializing test:", error);
@@ -696,7 +704,7 @@ export default function TestInterface() {
     return () => {
       mounted = false;
     };
-  }, [isTestStarted, startTest, startWarningSystem]);
+  }, [isTestStarted, startTest]); // Removed startWarningSystem from dependencies
 
   // End test monitoring when test ends
   useEffect(() => {

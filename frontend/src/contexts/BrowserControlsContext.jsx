@@ -99,6 +99,9 @@ export const BrowserControlsProvider = ({ children }) => {
     }
   }, [isTestActive, handleViolation]);
 
+  // Note: visibility change and window blur are handled by ScreenMonitorContext
+  // to avoid double warning decrements. These handlers are disabled:
+  /*
   // Handle visibility change
   const handleVisibilityChange = useCallback(() => {
     if (!isTestActive) return;
@@ -114,6 +117,7 @@ export const BrowserControlsProvider = ({ children }) => {
     
     handleViolation('window_blur');
   }, [isTestActive, handleViolation]);
+  */
 
   // Handle escape key
   const handleEscapeKey = useCallback((e) => {

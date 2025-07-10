@@ -1,9 +1,11 @@
 import React from 'react';
 import { useScreenMonitor } from '../contexts/ScreenMonitorContext';
+import { useWarning } from '../contexts/WarningContext';
 import AppLayout from '../layouts/AppLayout'; // Added import for AppLayout
 
 const ScreenMonitorStatus = () => {
-    const { warningCount, isFullscreen, isTestActive } = useScreenMonitor();
+    const { isFullscreen, isTestActive } = useScreenMonitor();
+    const { warningCount } = useWarning();
 
     if (!isTestActive) return null;
 
