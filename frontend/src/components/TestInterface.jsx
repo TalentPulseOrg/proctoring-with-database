@@ -46,7 +46,6 @@ export default function TestInterface() {
   const [showWebcamAlert, setShowWebcamAlert] = useState(false);
   const [isScreenshotServiceActive, setIsScreenshotServiceActive] =
     useState(false);
-  const [showFullscreenPrompt, setShowFullscreenPrompt] = useState(false);
   const [isFullscreenRequested, setIsFullscreenRequested] = useState(false);
   const [showWarningExhaustionDialog, setShowWarningExhaustionDialog] =
     useState(false);
@@ -86,36 +85,6 @@ export default function TestInterface() {
   const { alert: audioAlert, monitoring: isAudioActive, sessionEvents: audioSessionEvents } = useAudioMonitor(isTestStarted);
   const [audioToast, setAudioToast] = useState(null);
   const [audioMeter, setAudioMeter] = useState({ volume: 0, label: '---', confidence: 0 });
-
-  // Violation logger for fullscreen exit
-  const { logViolation, isLogging, startLogging, stopLogging } = useViolationLogger(sessionId, testData?.testId);
-  const lastFullscreenState = useRef(true);
-
-  // Show fullscreen prompt when user exits fullscreen during test
-  useEffect(() => {
-    if (!isTestStarted) return;
-    if (!isFullScreen) {
-      setShowFullscreenPrompt(true);
-      console.log('[DEBUG][TestInterface] Showing fullscreen prompt');
-      // Log violation only once per exit event
-      if (lastFullscreenState.current) {
-        logViolation('fullscreen_exit', { message: 'User exited fullscreen during test' });
-      }
-    } else {
-      setShowFullscreenPrompt(false);
-      console.log('[DEBUG][TestInterface] Hiding fullscreen prompt');
-    }
-    lastFullscreenState.current = isFullScreen;
-  }, [isFullScreen, isTestStarted, logViolation]);
-
-  // Start/stop violation logging with test
-  useEffect(() => {
-    if (isTestStarted && sessionId && testData?.testId) {
-      startLogging();
-    } else {
-      stopLogging();
-    }
-  }, [isTestStarted, sessionId, testData?.testId, startLogging, stopLogging]);
 
   // Ensure sessionId is always an integer
   const setSessionIdSafe = (id) => {
@@ -473,7 +442,8 @@ export default function TestInterface() {
   const handleStartTest = async () => {
     try {
       setError(null);
-      setShowFullscreenPrompt(true);
+      // Call handleEnterFullscreen to trigger fullscreen prompt and start test
+      await handleEnterFullscreen();
     } catch (error) {
       console.error("Error in handleStartTest:", error);
       setError(error.message);
@@ -497,7 +467,7 @@ export default function TestInterface() {
         setIsFullscreenRequested(false);
         return;
       }
-      setShowFullscreenPrompt(false);
+      // setShowFullscreenPrompt(false); // Removed as per edit hint
       // Use existing session ID instead of creating a new one
       let actualSessionId = sessionId;
       if (!actualSessionId) {
@@ -818,54 +788,6 @@ export default function TestInterface() {
     };
   }, []); // Empty dependency array means this only runs on mount/unmount
 
-  // Add this near your other JSX, before the main test interface
-  const renderFullscreenPrompt = () => {
-    if (!showFullscreenPrompt) return null;
-
-    return (
-      <div
-        style={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: "rgba(0, 0, 0, 0.8)",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          zIndex: 9999,
-          color: "white",
-          padding: "20px",
-          textAlign: "center",
-        }}
-      >
-        <h2>Fullscreen Mode Required</h2>
-        <p>For security reasons, this test must be taken in fullscreen mode.</p>
-        <p>Please click the button below to enter fullscreen mode.</p>
-        {error && (
-          <p style={{ color: "#ff4444", marginTop: "10px" }}>{error}</p>
-        )}
-        <button
-          onClick={handleEnterFullscreen}
-          style={{
-            padding: "12px 24px",
-            fontSize: "16px",
-            background: colors.primary,
-            color: "white",
-            border: "none",
-            borderRadius: "4px",
-            cursor: "pointer",
-            marginTop: "20px",
-          }}
-        >
-          Enter Fullscreen Mode
-        </button>
-      </div>
-    );
-  };
-
   // Update the fullscreen re-entry button handler
   const handleReenterFullscreen = async () => {
     try {
@@ -906,7 +828,7 @@ export default function TestInterface() {
 
   // Debug: Log fullscreen and test state on every render
   useEffect(() => {
-    console.log('[DEBUG][TestInterface] isFullScreen:', isFullScreen, 'isTestStarted:', isTestStarted, 'showFullscreenPrompt:', showFullscreenPrompt);
+    console.log('[DEBUG][TestInterface] isFullScreen:', isFullScreen, 'isTestStarted:', isTestStarted, 'showFullscreenPrompt:', false); // Changed to false as per edit hint
   });
 
   // Render the appropriate content based on test state
@@ -935,7 +857,6 @@ export default function TestInterface() {
           Gaze Direction: {gazeDirection}
         </div>
       )}
-      {renderFullscreenPrompt()}
       {!isTestStarted ? (
         <div className="max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-md mt-8">
           {error && (
