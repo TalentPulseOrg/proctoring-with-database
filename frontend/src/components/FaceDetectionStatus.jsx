@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { logMultipleFacesViolation } from '../api/api';
+import { logMultipleFacesViolationModular } from '../api/api';
 
 const FaceDetectionStatus = ({ faceCount, isDetecting, sessionId }) => {
   // Track last violation to avoid duplicate API calls
@@ -9,7 +9,10 @@ const FaceDetectionStatus = ({ faceCount, isDetecting, sessionId }) => {
     if (!isDetecting && sessionId && (faceCount === 0 || faceCount > 1)) {
       // Only log if faceCount changed to a violating state
       if (lastLoggedFaceCount.current !== faceCount) {
-        logMultipleFacesViolation(sessionId, faceCount)
+        logMultipleFacesViolationModular({
+          session_id: sessionId,
+          face_count: faceCount
+        })
           .catch((err) => console.error('Failed to log multiple faces violation:', err));
         lastLoggedFaceCount.current = faceCount;
       }

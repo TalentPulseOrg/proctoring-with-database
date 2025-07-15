@@ -194,7 +194,7 @@ async def health_check():
 async def cors_test(request: Request):
     origin = request.headers.get("origin", "No origin header")
     return {
-        "status": "ok", 
+        "status": "ok",
         "message": "CORS test successful",
         "request_headers": {
             "origin": origin,
@@ -242,6 +242,103 @@ try:
 except Exception as e:
     logger.error(f"Error including gaze routes: {str(e)}")
 
+# Add modular proctoring feature routers
+try:
+    # Camera Permission Feature
+    from app.features.camera_permission.routes import router as camera_permission_router
+    app.include_router(camera_permission_router)
+    logger.info("Camera permission routes included successfully")
+except Exception as e:
+    logger.error(f"Error including camera permission routes: {str(e)}")
+
+try:
+    # Microphone Permission Feature
+    from app.features.microphone_permission.routes import router as microphone_permission_router
+    app.include_router(microphone_permission_router)
+    logger.info("Microphone permission routes included successfully")
+except Exception as e:
+    logger.error(f"Error including microphone permission routes: {str(e)}")
+
+try:
+    # Face Detection Feature
+    from app.features.face_detection.routes import router as face_detection_router
+    app.include_router(face_detection_router)
+    logger.info("Face detection routes included successfully")
+except Exception as e:
+    logger.error(f"Error including face detection routes: {str(e)}")
+
+try:
+    # Browser Compatibility Feature
+    from app.features.browser_compatibility.routes import router as browser_compatibility_router
+    app.include_router(browser_compatibility_router)
+    logger.info("Browser compatibility routes included successfully")
+except Exception as e:
+    logger.error(f"Error including browser compatibility routes: {str(e)}")
+
+try:
+    # Tab Switching Control Feature
+    from app.features.tab_switching.routes import router as tab_switching_router
+    app.include_router(tab_switching_router)
+    logger.info("Tab switching routes included successfully")
+except Exception as e:
+    logger.error(f"Error including tab switching routes: {str(e)}")
+
+try:
+    # Window Blur Control Feature
+    from app.features.window_blur.routes import router as window_blur_router
+    app.include_router(window_blur_router)
+    logger.info("Window blur routes included successfully")
+except Exception as e:
+    logger.error(f"Error including window blur routes: {str(e)}")
+
+try:
+    # Full Screen Enforcement Feature
+    from app.features.fullscreen_enforcement.routes import router as fullscreen_enforcement_router
+    app.include_router(fullscreen_enforcement_router)
+    logger.info("Fullscreen enforcement routes included successfully")
+except Exception as e:
+    logger.error(f"Error including fullscreen enforcement routes: {str(e)}")
+
+try:
+    # Keyboard Shortcuts Control Feature
+    from app.features.keyboard_shortcuts.routes import router as keyboard_shortcuts_router
+    app.include_router(keyboard_shortcuts_router)
+    logger.info("Keyboard shortcuts routes included successfully")
+except Exception as e:
+    logger.error(f"Error including keyboard shortcuts routes: {str(e)}")
+
+try:
+    # Lighting Analysis Feature
+    from app.features.lighting_analysis.routes import router as lighting_analysis_router
+    app.include_router(lighting_analysis_router)
+    logger.info("Lighting analysis routes included successfully")
+except Exception as e:
+    logger.error(f"Error including lighting analysis routes: {str(e)}")
+
+try:
+    # Gaze Tracking Feature
+    from app.features.gaze_tracking.routes import router as gaze_tracking_router
+    app.include_router(gaze_tracking_router)
+    logger.info("Gaze tracking routes included successfully")
+except Exception as e:
+    logger.error(f"Error including gaze tracking routes: {str(e)}")
+
+try:
+    # Audio Monitoring Feature
+    from app.features.audio_monitoring.routes import router as audio_monitoring_router
+    app.include_router(audio_monitoring_router)
+    logger.info("Audio monitoring routes included successfully")
+except Exception as e:
+    logger.error(f"Error including audio monitoring routes: {str(e)}")
+
+try:
+    # Permission Logging Feature
+    from app.features.permission_logging.routes import router as permission_logging_router
+    app.include_router(permission_logging_router)
+    logger.info("Permission logging routes included successfully")
+except Exception as e:
+    logger.error(f"Error including permission logging routes: {str(e)}")
+
 @app.get("/")
 async def root():
     logger.info("Root endpoint called")
@@ -255,21 +352,21 @@ async def db_check():
         from sqlalchemy import inspect
         inspector = inspect(engine)
         schemas = inspector.get_schema_names()
-        
+
         result = {
             "status": "success",
             "connection": "Connected to database",
             "schemas": {}
         }
-        
+
         for schema in schemas:
             tables = inspector.get_table_names(schema=schema)
             result["schemas"][schema] = {}
-            
+
             for table in tables:
                 columns = inspector.get_columns(table, schema=schema)
                 result["schemas"][schema][table] = [col["name"] for col in columns]
-        
+
         # Check permissions
         try:
             if 'check_table_permissions' in globals():
@@ -279,7 +376,7 @@ async def db_check():
                 result["permissions_check"] = "Permission check function not available"
         except Exception as e:
             result["permissions_error"] = str(e)
-        
+
         return result
     except Exception as e:
         logger.error(f"Error checking database: {str(e)}")
@@ -289,8 +386,8 @@ if __name__ == "__main__":
     import uvicorn
     # Configure uvicorn logging
     uvicorn.run(
-        app, 
-        host="0.0.0.0", 
+        app,
+        host="0.0.0.0",
         port=8000,
         log_level="info"  # Use info for more detailed logs
     ) 

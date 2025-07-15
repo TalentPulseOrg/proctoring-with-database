@@ -1,4 +1,4 @@
-import { logLightingIssueViolation } from '../api/api';
+import { lightingAnalysisAPI } from '../api/api';
 
 // Cooldown tracking for lighting violations (10 seconds)
 const lightingViolationCooldowns = new Map();
@@ -73,9 +73,10 @@ export const analyzeLighting = async (canvas, sessionId = null, isTestActive = f
       if (now - lastViolationTime >= 10000) { // 10 seconds cooldown
         try {
           console.log('Logging lighting violation: too dark');
-          await logLightingIssueViolation(sessionId, {
-            level: averageBrightness,
-            status: status
+          await lightingAnalysisAPI.logViolation({
+            session_id: sessionId,
+            lighting_level: averageBrightness,
+            lighting_status: status
           });
           // Update cooldown timestamp
           lightingViolationCooldowns.set(cooldownKey, now);
@@ -99,9 +100,10 @@ export const analyzeLighting = async (canvas, sessionId = null, isTestActive = f
       if (now - lastViolationTime >= 10000) { // 10 seconds cooldown
         try {
           console.log('Logging lighting violation: too bright');
-          await logLightingIssueViolation(sessionId, {
-            level: averageBrightness,
-            status: status
+          await lightingAnalysisAPI.logViolation({
+            session_id: sessionId,
+            lighting_level: averageBrightness,
+            lighting_status: status
           });
           // Update cooldown timestamp
           lightingViolationCooldowns.set(cooldownKey, now);

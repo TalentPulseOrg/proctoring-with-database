@@ -582,148 +582,11 @@ const deleteSessionsByTest = async (testId) => {
 };
 
 // Enhanced Violation Logging APIs
-const logCameraPermissionViolation = async (sessionId, errorMessage = null) => {
-  try {
-    const response = await api.post('/api/proctoring/violations/camera-permission', {
-      session_id: sessionId,
-      error_message: errorMessage
-    });
-    return response.data;
-  } catch (error) {
-    return handleApiError(error, 'Failed to log camera permission violation');
-  }
-};
 
-const logMicrophonePermissionViolation = async (sessionId, errorMessage = null) => {
-  try {
-    const response = await api.post('/api/proctoring/violations/microphone-permission', {
-      session_id: sessionId,
-      error_message: errorMessage
-    });
-    return response.data;
-  } catch (error) {
-    return handleApiError(error, 'Failed to log microphone permission violation');
-  }
-};
 
-const logBrowserCompatibilityViolation = async (sessionId, browserInfo = {}) => {
-  try {
-    const response = await api.post('/api/proctoring/violations/browser-compatibility', {
-      session_id: sessionId,
-      browser_name: browserInfo.name,
-      browser_version: browserInfo.version,
-      user_agent: browserInfo.userAgent
-    });
-    return response.data;
-  } catch (error) {
-    return handleApiError(error, 'Failed to log browser compatibility violation');
-  }
-};
 
-const logTabSwitchViolation = async (sessionId, filepath = null) => {
-  try {
-    const response = await api.post('/api/proctoring/violations/tab-switch', {
-      session_id: sessionId,
-      filepath: filepath
-    });
-    return response.data;
-  } catch (error) {
-    return handleApiError(error, 'Failed to log tab switch violation');
-  }
-};
 
-const logWindowBlurViolation = async (sessionId, filepath = null) => {
-  try {
-    const response = await api.post('/api/proctoring/violations/window-blur', {
-      session_id: sessionId,
-      filepath: filepath
-    });
-    return response.data;
-  } catch (error) {
-    return handleApiError(error, 'Failed to log window blur violation');
-  }
-};
 
-const logFullscreenExitViolation = async (sessionId, filepath = null) => {
-  try {
-    const response = await api.post('/api/proctoring/violations/fullscreen-exit', {
-      session_id: sessionId,
-      filepath: filepath
-    });
-    return response.data;
-  } catch (error) {
-    return handleApiError(error, 'Failed to log fullscreen exit violation');
-  }
-};
-
-const logKeyboardShortcutViolation = async (sessionId, keyCombination, filepath = null) => {
-  try {
-    const response = await api.post('/api/proctoring/violations/keyboard-shortcut', {
-      session_id: sessionId,
-      key_combination: keyCombination,
-      filepath: filepath
-    });
-    return response.data;
-  } catch (error) {
-    return handleApiError(error, 'Failed to log keyboard shortcut violation');
-  }
-};
-
-const logLightingIssueViolation = async (sessionId, lightingData = {}, filepath = null) => {
-  try {
-    const response = await api.post('/api/proctoring/violations/lighting-issue', {
-      session_id: sessionId,
-      lighting_level: lightingData.level,
-      lighting_status: lightingData.status,
-      filepath: filepath
-    });
-    return response.data;
-  } catch (error) {
-    return handleApiError(error, 'Failed to log lighting issue violation');
-  }
-};
-
-const logGazeAwayViolation = async (sessionId, gazeData = {}, filepath = null) => {
-  try {
-    const response = await api.post('/api/proctoring/violations/gaze-away', {
-      session_id: sessionId,
-      gaze_direction: gazeData.direction,
-      duration_seconds: gazeData.duration,
-      filepath: filepath
-    });
-    return response.data;
-  } catch (error) {
-    return handleApiError(error, 'Failed to log gaze away violation');
-  }
-};
-
-const logMultipleFacesViolation = async (sessionId, faceCount, filepath = null) => {
-  try {
-    const response = await api.post('/api/proctoring/violations/multiple-faces', {
-      session_id: sessionId,
-      face_count: faceCount,
-      filepath: filepath
-    });
-    return response.data;
-  } catch (error) {
-    return handleApiError(error, 'Failed to log multiple faces violation');
-  }
-};
-
-const logAudioSuspiciousViolation = async (sessionId, audioData = {}, filepath = null) => {
-  try {
-    const response = await api.post('/api/proctoring/violations/audio-suspicious', {
-      session_id: sessionId,
-      audio_type: audioData.type,
-      confidence: audioData.confidence,
-      volume_level: audioData.volumeLevel,
-      filepath: filepath
-    });
-    return response.data;
-  } catch (error) {
-    return handleApiError(error, 'Failed to log suspicious audio violation');
-  }
-};
 
 const getSessionViolationsSummary = async (sessionId) => {
   try {
@@ -783,6 +646,345 @@ const logMicrophonePermission = async (sessionId, granted, errorMessage = null) 
   return logProctorPermission(sessionId, 'microphone', granted, deviceInfo, errorMessage);
 };
 
+// Modular Camera Permission APIs
+const logCameraPermissionViolationModular = async (violationData) => {
+  try {
+    const response = await api.post('/api/proctoring/camera-permission/violation', violationData);
+    return response.data;
+  } catch (error) {
+    return handleApiError(error, 'Failed to log camera permission violation');
+  }
+};
+
+const logCameraPermissionGrantModular = async (sessionId, deviceInfo = null) => {
+  try {
+    const response = await api.post('/api/proctoring/camera-permission/grant', {
+      session_id: sessionId,
+      device_info: deviceInfo || navigator.userAgent
+    });
+    return response.data;
+  } catch (error) {
+    return handleApiError(error, 'Failed to log camera permission grant');
+  }
+};
+
+const getCameraPermissionStatus = async (sessionId) => {
+  try {
+    const response = await api.get(`/api/proctoring/camera-permission/session/${sessionId}/status`);
+    return response.data;
+  } catch (error) {
+    return handleApiError(error, 'Failed to get camera permission status');
+  }
+};
+
+// Modular Microphone Permission APIs
+const logMicrophonePermissionViolationModular = async (violationData) => {
+  try {
+    const response = await api.post('/api/proctoring/microphone-permission/violation', violationData);
+    return response.data;
+  } catch (error) {
+    return handleApiError(error, 'Failed to log microphone permission violation');
+  }
+};
+
+const logMicrophonePermissionGrantModular = async (sessionId, deviceInfo = null) => {
+  try {
+    const response = await api.post('/api/proctoring/microphone-permission/grant', {
+      session_id: sessionId,
+      device_info: deviceInfo || navigator.userAgent
+    });
+    return response.data;
+  } catch (error) {
+    return handleApiError(error, 'Failed to log microphone permission grant');
+  }
+};
+
+const getMicrophonePermissionStatus = async (sessionId) => {
+  try {
+    const response = await api.get(`/api/proctoring/microphone-permission/session/${sessionId}/status`);
+    return response.data;
+  } catch (error) {
+    return handleApiError(error, 'Failed to get microphone permission status');
+  }
+};
+
+// Modular Face Detection APIs
+const detectFaces = async (detectionData) => {
+  try {
+    const response = await api.post('/api/proctoring/face-detection/detect', detectionData);
+    return response.data;
+  } catch (error) {
+    return handleApiError(error, 'Failed to detect faces');
+  }
+};
+
+const logMultipleFacesViolationModular = async (violationData) => {
+  try {
+    const response = await api.post('/api/proctoring/face-detection/violation/multiple-faces', violationData);
+    return response.data;
+  } catch (error) {
+    return handleApiError(error, 'Failed to log multiple faces violation');
+  }
+};
+
+const getFaceDetectionSummary = async (sessionId) => {
+  try {
+    const response = await api.get(`/api/proctoring/face-detection/session/${sessionId}/summary`);
+    return response.data;
+  } catch (error) {
+    return handleApiError(error, 'Failed to get face detection summary');
+  }
+};
+
+// Modular Browser Compatibility APIs
+const checkBrowserCompatibility = async (compatibilityData) => {
+  try {
+    const response = await api.post('/api/proctoring/browser-compatibility/check', compatibilityData);
+    return response.data;
+  } catch (error) {
+    return handleApiError(error, 'Failed to check browser compatibility');
+  }
+};
+
+const logBrowserCompatibilityViolationModular = async (violationData) => {
+  try {
+    const response = await api.post('/api/proctoring/browser-compatibility/violation', violationData);
+    return response.data;
+  } catch (error) {
+    return handleApiError(error, 'Failed to log browser compatibility violation');
+  }
+};
+
+const getBrowserCompatibilityStatus = async (sessionId) => {
+  try {
+    const response = await api.get(`/api/proctoring/browser-compatibility/session/${sessionId}/status`);
+    return response.data;
+  } catch (error) {
+    return handleApiError(error, 'Failed to get browser compatibility status');
+  }
+};
+
+const getSupportedBrowsers = async () => {
+  try {
+    const response = await api.get('/api/proctoring/browser-compatibility/supported-browsers');
+    return response.data;
+  } catch (error) {
+    return handleApiError(error, 'Failed to get supported browsers');
+  }
+};
+
+// Modular Tab Switching APIs
+const logTabSwitchingViolation = async (violationData) => {
+  try {
+    const response = await api.post('/api/proctoring/tab-switching/violation', violationData);
+    return response.data;
+  } catch (error) {
+    return handleApiError(error, 'Failed to log tab switching violation');
+  }
+};
+
+const getTabSwitchingStatus = async (sessionId) => {
+  try {
+    const response = await api.get(`/api/proctoring/tab-switching/session/${sessionId}/status`);
+    return response.data;
+  } catch (error) {
+    return handleApiError(error, 'Failed to get tab switching status');
+  }
+};
+
+const getTabSwitchingViolations = async (sessionId) => {
+  try {
+    const response = await api.get(`/api/proctoring/tab-switching/session/${sessionId}/violations`);
+    return response.data;
+  } catch (error) {
+    return handleApiError(error, 'Failed to get tab switching violations');
+  }
+};
+
+const getTabSwitchingSummary = async (sessionId) => {
+  try {
+    const response = await api.get(`/api/proctoring/tab-switching/session/${sessionId}/summary`);
+    return response.data;
+  } catch (error) {
+    return handleApiError(error, 'Failed to get tab switching summary');
+  }
+};
+
+// Modular Window Blur APIs
+const logWindowBlurViolation = async (violationData) => {
+  try {
+    const response = await api.post('/api/proctoring/window-blur/violation', violationData);
+    return response.data;
+  } catch (error) {
+    return handleApiError(error, 'Failed to log window blur violation');
+  }
+};
+
+const getWindowBlurStatus = async (sessionId) => {
+  try {
+    const response = await api.get(`/api/proctoring/window-blur/session/${sessionId}/status`);
+    return response.data;
+  } catch (error) {
+    return handleApiError(error, 'Failed to get window blur status');
+  }
+};
+
+const getWindowBlurViolations = async (sessionId) => {
+  try {
+    const response = await api.get(`/api/proctoring/window-blur/session/${sessionId}/violations`);
+    return response.data;
+  } catch (error) {
+    return handleApiError(error, 'Failed to get window blur violations');
+  }
+};
+
+const getWindowBlurSummary = async (sessionId) => {
+  try {
+    const response = await api.get(`/api/proctoring/window-blur/session/${sessionId}/summary`);
+    return response.data;
+  } catch (error) {
+    return handleApiError(error, 'Failed to get window blur summary');
+  }
+};
+
+// Modular Fullscreen Enforcement APIs
+const logFullscreenExitViolation = async (violationData) => {
+  try {
+    const response = await api.post('/api/proctoring/fullscreen-enforcement/violation', violationData);
+    return response.data;
+  } catch (error) {
+    return handleApiError(error, 'Failed to log fullscreen exit violation');
+  }
+};
+
+const getFullscreenStatus = async (sessionId) => {
+  try {
+    const response = await api.get(`/api/proctoring/fullscreen-enforcement/session/${sessionId}/status`);
+    return response.data;
+  } catch (error) {
+    return handleApiError(error, 'Failed to get fullscreen status');
+  }
+};
+
+const getFullscreenViolations = async (sessionId) => {
+  try {
+    const response = await api.get(`/api/proctoring/fullscreen-enforcement/session/${sessionId}/violations`);
+    return response.data;
+  } catch (error) {
+    return handleApiError(error, 'Failed to get fullscreen violations');
+  }
+};
+
+const getFullscreenSummary = async (sessionId) => {
+  try {
+    const response = await api.get(`/api/proctoring/fullscreen-enforcement/session/${sessionId}/summary`);
+    return response.data;
+  } catch (error) {
+    return handleApiError(error, 'Failed to get fullscreen summary');
+  }
+};
+
+// Modular Keyboard Shortcuts APIs
+const logKeyboardShortcutViolation = async (violationData) => {
+  try {
+    const response = await api.post('/api/proctoring/keyboard-shortcuts/violation', violationData);
+    return response.data;
+  } catch (error) {
+    return handleApiError(error, 'Failed to log keyboard shortcut violation');
+  }
+};
+
+const getKeyboardShortcutsStatus = async (sessionId) => {
+  try {
+    const response = await api.get(`/api/proctoring/keyboard-shortcuts/session/${sessionId}/status`);
+    return response.data;
+  } catch (error) {
+    return handleApiError(error, 'Failed to get keyboard shortcuts status');
+  }
+};
+
+const getKeyboardShortcutsViolations = async (sessionId) => {
+  try {
+    const response = await api.get(`/api/proctoring/keyboard-shortcuts/session/${sessionId}/violations`);
+    return response.data;
+  } catch (error) {
+    return handleApiError(error, 'Failed to get keyboard shortcuts violations');
+  }
+};
+
+const getKeyboardShortcutsSummary = async (sessionId) => {
+  try {
+    const response = await api.get(`/api/proctoring/keyboard-shortcuts/session/${sessionId}/summary`);
+    return response.data;
+  } catch (error) {
+    return handleApiError(error, 'Failed to get keyboard shortcuts summary');
+  }
+};
+
+const getRestrictedShortcuts = async () => {
+  try {
+    const response = await api.get('/api/proctoring/keyboard-shortcuts/restricted-shortcuts');
+    return response.data;
+  } catch (error) {
+    return handleApiError(error, 'Failed to get restricted shortcuts');
+  }
+};
+
+// Keyboard Shortcuts Control API
+export const keyboardShortcutsAPI = {
+    logViolation: (data) => api.post('/api/proctoring/keyboard-shortcuts/violation', data),
+    getSessionViolations: (sessionId) => api.get(`/api/proctoring/keyboard-shortcuts/session/${sessionId}/violations`),
+    getStatus: (sessionId) => api.get(`/api/proctoring/keyboard-shortcuts/session/${sessionId}/status`),
+    getSummary: (sessionId) => api.get(`/api/proctoring/keyboard-shortcuts/session/${sessionId}/summary`),
+    getBlockedShortcuts: () => api.get('/api/proctoring/keyboard-shortcuts/blocked-shortcuts')
+};
+
+// Lighting Analysis API
+export const lightingAnalysisAPI = {
+    logViolation: (data) => api.post('/api/proctoring/lighting-analysis/violation', data),
+    getSessionViolations: (sessionId) => api.get(`/api/proctoring/lighting-analysis/session/${sessionId}/violations`),
+    getStatus: (sessionId) => api.get(`/api/proctoring/lighting-analysis/session/${sessionId}/status`),
+    getSummary: (sessionId) => api.get(`/api/proctoring/lighting-analysis/session/${sessionId}/summary`),
+    analyzeLighting: (brightnessLevel, previousBrightness) => api.post('/api/proctoring/lighting-analysis/analyze', {
+        brightness_level: brightnessLevel,
+        previous_brightness: previousBrightness
+    })
+};
+
+// Gaze Tracking API
+export const gazeTrackingAPI = {
+    logViolation: (data) => api.post('/api/proctoring/gaze-tracking/violation', data),
+    getSessionViolations: (sessionId) => api.get(`/api/proctoring/gaze-tracking/session/${sessionId}/violations`),
+    getStatus: (sessionId) => api.get(`/api/proctoring/gaze-tracking/session/${sessionId}/status`),
+    getSummary: (sessionId) => api.get(`/api/proctoring/gaze-tracking/session/${sessionId}/summary`),
+    analyzeGaze: (confidenceLevel, gazeData) => api.post('/api/proctoring/gaze-tracking/analyze', {
+        confidence_level: confidenceLevel,
+        gaze_data: gazeData
+    })
+};
+
+// Audio Monitoring API
+export const audioMonitoringAPI = {
+    logViolation: (data) => api.post('/api/proctoring/audio-monitoring/violation', data),
+    getSessionViolations: (sessionId) => api.get(`/api/proctoring/audio-monitoring/session/${sessionId}/violations`),
+    getStatus: (sessionId) => api.get(`/api/proctoring/audio-monitoring/session/${sessionId}/status`),
+    getSummary: (sessionId) => api.get(`/api/proctoring/audio-monitoring/session/${sessionId}/summary`),
+    analyzeAudio: (audioLevel, confidenceLevel, audioData) => api.post('/api/proctoring/audio-monitoring/analyze', {
+        audio_level: audioLevel,
+        confidence_level: confidenceLevel,
+        audio_data: audioData
+    })
+};
+
+// Permission Logging API
+export const permissionLoggingAPI = {
+    logPermission: (data) => api.post('/api/proctoring/permission-logging/log', data),
+    getSessionPermissions: (sessionId) => api.get(`/api/proctoring/permission-logging/session/${sessionId}/permissions`),
+    getStatus: (sessionId) => api.get(`/api/proctoring/permission-logging/session/${sessionId}/status`),
+    getSummary: (sessionId) => api.get(`/api/proctoring/permission-logging/session/${sessionId}/summary`),
+    getValidPermissionTypes: () => api.get('/api/proctoring/permission-logging/valid-permission-types')
+};
+
 export {
   fetchHealthCheck,
   uploadIdPhoto,
@@ -817,25 +1019,45 @@ export {
   deleteSession,
   deleteAllSessions,
   deleteSessionsByTest,
-  // Enhanced violation logging
-  logCameraPermissionViolation,
-  logMicrophonePermissionViolation,
-  logBrowserCompatibilityViolation,
-  logTabSwitchViolation,
-  logWindowBlurViolation,
-  logFullscreenExitViolation,
-  logKeyboardShortcutViolation,
-  logLightingIssueViolation,
-  logGazeAwayViolation,
-  logMultipleFacesViolation,
-  logAudioSuspiciousViolation,
+  // Enhanced violation logging (removed old non-modular functions)
   getSessionViolationsSummary,
   testViolationLogging,
   // Proctor permission logging
   logProctorPermission,
   getSessionPermissions,
   logCameraPermission,
-  logMicrophonePermission
+  logMicrophonePermission,
+  // Modular feature APIs
+  logCameraPermissionViolationModular,
+  logCameraPermissionGrantModular,
+  getCameraPermissionStatus,
+  logMicrophonePermissionViolationModular,
+  logMicrophonePermissionGrantModular,
+  getMicrophonePermissionStatus,
+  detectFaces,
+  logMultipleFacesViolationModular,
+  getFaceDetectionSummary,
+  checkBrowserCompatibility,
+  logBrowserCompatibilityViolationModular,
+  getBrowserCompatibilityStatus,
+  getSupportedBrowsers,
+  logTabSwitchingViolation,
+  getTabSwitchingStatus,
+  getTabSwitchingViolations,
+  getTabSwitchingSummary,
+  logWindowBlurViolation,
+  getWindowBlurStatus,
+  getWindowBlurViolations,
+  getWindowBlurSummary,
+  logFullscreenExitViolation,
+  getFullscreenStatus,
+  getFullscreenViolations,
+  getFullscreenSummary,
+  logKeyboardShortcutViolation,
+  getKeyboardShortcutsStatus,
+  getKeyboardShortcutsViolations,
+  getKeyboardShortcutsSummary,
+  getRestrictedShortcuts
 };
 
 export default api;
