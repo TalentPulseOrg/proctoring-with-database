@@ -21,12 +21,8 @@ Usage:
 
 from .routes import router
 from .services import GazeTrackingService
-from .models import GazeViolation
-from .schemas import GazeViolationRequest
 
 __all__ = [
     'router',
-    'GazeTrackingService', 
-    'GazeViolation',
-    'GazeViolationRequest'
+    'GazeTrackingService'
 ] 

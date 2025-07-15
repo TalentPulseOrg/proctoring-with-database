@@ -21,12 +21,8 @@ Usage:
 
 from .routes import router
 from .services import BrowserCompatibilityService
-from .models import BrowserCompatibilityLog
-from .schemas import BrowserCompatibilityViolation
 
 __all__ = [
     'router',
     'BrowserCompatibilityService', 
-    'BrowserCompatibilityLog',
-    'BrowserCompatibilityViolation'
 ] 

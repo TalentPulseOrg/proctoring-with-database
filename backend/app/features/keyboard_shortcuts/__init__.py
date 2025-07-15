@@ -21,12 +21,8 @@ Usage:
 
 from .routes import router
 from .services import KeyboardShortcutsService
-from .models import KeyboardShortcutViolation
-from .schemas import KeyboardShortcutViolationRequest
 
 __all__ = [
     'router',
     'KeyboardShortcutsService', 
-    'KeyboardShortcutViolation',
-    'KeyboardShortcutViolationRequest'
 ] 

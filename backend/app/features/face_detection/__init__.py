@@ -23,15 +23,8 @@ Usage:
 
 from .routes import router
 from .services import FaceDetectionService
-from .models import FaceDetectionLog, MultipleFacesViolation
-from .schemas import FaceDetectionRequest, FaceDetectionResponse, MultipleFacesViolationRequest
 
 __all__ = [
     'router',
     'FaceDetectionService', 
-    'FaceDetectionLog',
-    'MultipleFacesViolation',
-    'FaceDetectionRequest',
-    'FaceDetectionResponse',
-    'MultipleFacesViolationRequest'
 ] 

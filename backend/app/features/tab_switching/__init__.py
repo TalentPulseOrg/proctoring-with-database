@@ -21,12 +21,8 @@ Usage:
 
 from .routes import router
 from .services import TabSwitchingService
-from .models import TabSwitchingViolation
-from .schemas import TabSwitchingViolationRequest
 
 __all__ = [
     'router',
     'TabSwitchingService', 
-    'TabSwitchingViolation',
-    'TabSwitchingViolationRequest'
 ] 

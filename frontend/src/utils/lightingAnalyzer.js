@@ -75,8 +75,8 @@ export const analyzeLighting = async (canvas, sessionId = null, isTestActive = f
           console.log('Logging lighting violation: too dark');
           await lightingAnalysisAPI.logViolation({
             session_id: sessionId,
-            lighting_level: averageBrightness,
-            lighting_status: status
+            brightness_level: averageBrightness,
+            lighting_condition: status
           });
           // Update cooldown timestamp
           lightingViolationCooldowns.set(cooldownKey, now);
@@ -102,8 +102,8 @@ export const analyzeLighting = async (canvas, sessionId = null, isTestActive = f
           console.log('Logging lighting violation: too bright');
           await lightingAnalysisAPI.logViolation({
             session_id: sessionId,
-            lighting_level: averageBrightness,
-            lighting_status: status
+            brightness_level: averageBrightness,
+            lighting_condition: status
           });
           // Update cooldown timestamp
           lightingViolationCooldowns.set(cooldownKey, now);

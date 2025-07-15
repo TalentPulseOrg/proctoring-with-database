@@ -21,12 +21,8 @@ Usage:
 
 from .routes import router
 from .services import AudioMonitoringService
-from .models import AudioViolation
-from .schemas import AudioViolationRequest
 
 __all__ = [
     'router',
     'AudioMonitoringService', 
-    'AudioViolation',
-    'AudioViolationRequest'
 ] 

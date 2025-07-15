@@ -21,12 +21,8 @@ Usage:
 
 from .routes import router
 from .services import PermissionLoggingService
-from .models import ProctorPermissionLog
-from .schemas import PermissionLogRequest
 
 __all__ = [
     'router',
     'PermissionLoggingService', 
-    'ProctorPermissionLog',
-    'PermissionLogRequest'
 ] 

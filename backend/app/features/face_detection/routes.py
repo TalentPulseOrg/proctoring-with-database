@@ -63,6 +63,32 @@ async def detect_faces_upload(
         logger.error(f"Error detecting faces from upload: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@router.post("/violation/multiple-faces")
+async def log_multiple_faces_violation(
+    payload: Dict[str, Any],
+    db: Session = Depends(get_db)
+):
+    """Log a multiple faces violation (modular endpoint for frontend)"""
+    try:
+        session_id = payload.get("session_id")
+        face_count = payload.get("face_count")
+        image_path = payload.get("image_path")
+        if not session_id or not face_count:
+            raise HTTPException(status_code=400, detail="session_id and face_count are required")
+        success = FaceDetectionService.log_multiple_faces_violation(
+            db=db,
+            session_id=session_id,
+            face_count=face_count,
+            image_path=image_path
+        )
+        if success:
+            return {"success": True, "message": "Multiple faces violation logged"}
+        else:
+            raise HTTPException(status_code=500, detail="Failed to log multiple faces violation")
+    except Exception as e:
+        logger.error(f"Error logging multiple faces violation: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 @router.get("/session/{session_id}/multiple-faces-violations")
 async def get_session_multiple_faces_violations(
     session_id: int,
