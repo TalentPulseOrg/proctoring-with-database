@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { logCameraPermissionViolation } from '../api/api';
+import { logCameraPermissionViolationModular } from '../api/api';
 import { logCameraPermission } from '../api/api';
 
 /**
@@ -55,7 +55,11 @@ export const useCameraPermissionMonitor = (sessionId, isTestActive = false, shou
                 
                 // Log violation only if permission was previously granted and we haven't already logged
                 if (lastPermissionState.current && !violationLogged.current && sessionId) {
-                    await logCameraPermissionViolation(sessionId, error.message);
+                    const violationData = {
+                        session_id: sessionId,
+                        error_message: error.message
+                    };
+                    await logCameraPermissionViolationModular(violationData);
                     
                     // Also log to proctorpermissionlog only if shouldLogPermissions is true
                     if (shouldLogPermissions) {

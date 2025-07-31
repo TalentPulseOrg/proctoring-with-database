@@ -1,16 +1,13 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import {
-  logCameraPermissionViolation,
-  logMicrophonePermissionViolation,
-  logBrowserCompatibilityViolation,
-  logTabSwitchViolation,
+  logCameraPermissionViolationModular,
+  logMicrophonePermissionViolationModular,
+  logBrowserCompatibilityViolationModular,
+  logTabSwitchingViolation,
   logWindowBlurViolation,
   logFullscreenExitViolation,
   logKeyboardShortcutViolation,
-  logLightingIssueViolation,
-  logGazeAwayViolation,
-  logMultipleFacesViolation,
-  logAudioSuspiciousViolation,
+  logMultipleFacesViolationModular,
   getSessionViolationsSummary
 } from '../api/api';
 
@@ -105,7 +102,11 @@ export const useEnhancedViolationLogger = (sessionId) => {
     if (!isLogging || !sessionId || isInCooldown('camera_permission')) return false;
     
     try {
-      const result = await logCameraPermissionViolation(sessionId, errorMessage);
+      const violationData = {
+        session_id: sessionId,
+        error_message: errorMessage
+      };
+      const result = await logCameraPermissionViolationModular(violationData);
       if (result.success) {
         addViolationToState('camera_permission', { errorMessage });
         setCooldown('camera_permission');
@@ -123,7 +124,11 @@ export const useEnhancedViolationLogger = (sessionId) => {
     if (!isLogging || !sessionId || isInCooldown('microphone_permission')) return false;
     
     try {
-      const result = await logMicrophonePermissionViolation(sessionId, errorMessage);
+      const violationData = {
+        session_id: sessionId,
+        error_message: errorMessage
+      };
+      const result = await logMicrophonePermissionViolationModular(violationData);
       if (result.success) {
         addViolationToState('microphone_permission', { errorMessage });
         setCooldown('microphone_permission');
@@ -141,7 +146,13 @@ export const useEnhancedViolationLogger = (sessionId) => {
     if (!isLogging || !sessionId || isInCooldown('browser_compatibility')) return false;
     
     try {
-      const result = await logBrowserCompatibilityViolation(sessionId, browserInfo);
+      const violationData = {
+        session_id: sessionId,
+        browser_name: browserInfo.name,
+        browser_version: browserInfo.version,
+        user_agent: browserInfo.userAgent
+      };
+      const result = await logBrowserCompatibilityViolationModular(violationData);
       if (result.success) {
         addViolationToState('browser_compatibility', { browserInfo });
         setCooldown('browser_compatibility');
@@ -173,8 +184,12 @@ export const useEnhancedViolationLogger = (sessionId) => {
     }
     
     try {
-      console.log('Calling logTabSwitchViolation API with sessionId:', sessionId);
-      const result = await logTabSwitchViolation(sessionId, filepath);
+      console.log('Calling logTabSwitchingViolation API with sessionId:', sessionId);
+      const violationData = {
+        session_id: sessionId,
+        filepath: filepath
+      };
+      const result = await logTabSwitchingViolation(violationData);
       console.log('API response:', result);
       
       if (result.success) {
@@ -196,7 +211,11 @@ export const useEnhancedViolationLogger = (sessionId) => {
     if (!isLogging || !sessionId || isInCooldown('window_blur')) return false;
     
     try {
-      const result = await logWindowBlurViolation(sessionId, filepath);
+      const violationData = {
+        session_id: sessionId,
+        filepath: filepath
+      };
+      const result = await logWindowBlurViolation(violationData);
       if (result.success) {
         addViolationToState('window_blur', { filepath });
         setCooldown('window_blur');
@@ -214,7 +233,11 @@ export const useEnhancedViolationLogger = (sessionId) => {
     if (!isLogging || !sessionId || isInCooldown('fullscreen_exit')) return false;
     
     try {
-      const result = await logFullscreenExitViolation(sessionId, filepath);
+      const violationData = {
+        session_id: sessionId,
+        filepath: filepath
+      };
+      const result = await logFullscreenExitViolation(violationData);
       if (result.success) {
         addViolationToState('fullscreen_exit', { filepath });
         setCooldown('fullscreen_exit');
@@ -247,7 +270,12 @@ export const useEnhancedViolationLogger = (sessionId) => {
     
     try {
       console.log('Calling logKeyboardShortcutViolation API with sessionId:', sessionId, 'keyCombination:', keyCombination);
-      const result = await logKeyboardShortcutViolation(sessionId, keyCombination, filepath);
+      const violationData = {
+        session_id: sessionId,
+        key_combination: keyCombination,
+        filepath: filepath
+      };
+      const result = await logKeyboardShortcutViolation(violationData);
       console.log('API response:', result);
       
       if (result.success) {
@@ -264,48 +292,17 @@ export const useEnhancedViolationLogger = (sessionId) => {
     return false;
   }, [isLogging, sessionId, isInCooldown, addViolationToState, setCooldown]);
   
-  // Lighting issue violation
-  const logLightingIssue = useCallback(async (lightingData = {}, filepath = null) => {
-    if (!isLogging || !sessionId || isInCooldown('lighting_issue')) return false;
-    
-    try {
-      const result = await logLightingIssueViolation(sessionId, lightingData, filepath);
-      if (result.success) {
-        addViolationToState('lighting_issue', { lightingData, filepath });
-        setCooldown('lighting_issue');
-        console.log('Lighting issue violation logged');
-        return true;
-      }
-    } catch (error) {
-      console.error('Failed to log lighting issue violation:', error);
-    }
-    return false;
-  }, [isLogging, sessionId, isInCooldown, addViolationToState, setCooldown]);
-  
-  // Gaze away violation
-  const logGazeAway = useCallback(async (gazeData = {}, filepath = null) => {
-    if (!isLogging || !sessionId || isInCooldown('gaze_away')) return false;
-    
-    try {
-      const result = await logGazeAwayViolation(sessionId, gazeData, filepath);
-      if (result.success) {
-        addViolationToState('gaze_away', { gazeData, filepath });
-        setCooldown('gaze_away');
-        console.log('Gaze away violation logged');
-        return true;
-      }
-    } catch (error) {
-      console.error('Failed to log gaze away violation:', error);
-    }
-    return false;
-  }, [isLogging, sessionId, isInCooldown, addViolationToState, setCooldown]);
-  
   // Multiple faces violation
   const logMultipleFaces = useCallback(async (faceCount, filepath = null) => {
     if (!isLogging || !sessionId || isInCooldown('multiple_faces')) return false;
     
     try {
-      const result = await logMultipleFacesViolation(sessionId, faceCount, filepath);
+      const violationData = {
+        session_id: sessionId,
+        face_count: faceCount,
+        filepath: filepath
+      };
+      const result = await logMultipleFacesViolationModular(violationData);
       if (result.success) {
         addViolationToState('multiple_faces', { faceCount, filepath });
         setCooldown('multiple_faces');
@@ -314,24 +311,6 @@ export const useEnhancedViolationLogger = (sessionId) => {
       }
     } catch (error) {
       console.error('Failed to log multiple faces violation:', error);
-    }
-    return false;
-  }, [isLogging, sessionId, isInCooldown, addViolationToState, setCooldown]);
-  
-  // Audio suspicious violation
-  const logAudioSuspicious = useCallback(async (audioData = {}, filepath = null) => {
-    if (!isLogging || !sessionId || isInCooldown('audio_suspicious')) return false;
-    
-    try {
-      const result = await logAudioSuspiciousViolation(sessionId, audioData, filepath);
-      if (result.success) {
-        addViolationToState('audio_suspicious', { audioData, filepath });
-        setCooldown('audio_suspicious');
-        console.log('Suspicious audio violation logged');
-        return true;
-      }
-    } catch (error) {
-      console.error('Failed to log suspicious audio violation:', error);
     }
     return false;
   }, [isLogging, sessionId, isInCooldown, addViolationToState, setCooldown]);
@@ -378,10 +357,7 @@ export const useEnhancedViolationLogger = (sessionId) => {
     logWindowBlur,
     logFullscreenExit,
     logKeyboardShortcut,
-    logLightingIssue,
-    logGazeAway,
     logMultipleFaces,
-    logAudioSuspicious,
     // Cooldown state
     cooldowns,
     isInCooldown

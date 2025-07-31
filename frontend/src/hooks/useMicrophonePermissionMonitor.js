@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { logMicrophonePermissionViolation } from '../api/api';
+import { logMicrophonePermissionViolationModular } from '../api/api';
 import { logMicrophonePermission } from '../api/api';
 
 /**
@@ -55,7 +55,11 @@ export const useMicrophonePermissionMonitor = (sessionId, isTestActive = false, 
                 
                 // Log violation only if permission was previously granted and we haven't already logged
                 if (lastPermissionState.current && !violationLogged.current && sessionId) {
-                    await logMicrophonePermissionViolation(sessionId, error.message);
+                    const violationData = {
+                        session_id: sessionId,
+                        error_message: error.message
+                    };
+                    await logMicrophonePermissionViolationModular(violationData);
                     
                     // Also log to proctorpermissionlog only if shouldLogPermissions is true
                     if (shouldLogPermissions) {
