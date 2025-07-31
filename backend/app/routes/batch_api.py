@@ -373,24 +373,24 @@ def generate_question_api(request: QuestionGenerationRequest):
             ### *8. JSON Output Format*  
             Strictly adhere to the following JSON structure:
             {{
-                "questionData": [
-                        {{
-                            "questionText": "Question text here...",
-                            "positiveMarking": 1,
-                            "negativeMarking": 0,
-                            "timeToSolve": 2,
-                            "BTLevel": 1,
-                            "difficulty": 1,
-                            "subtopicData" : [" "," "],
-                            "optionData": [
-                              {{ "optionName": "option1", "optionText": "..." }},
-                              {{ "optionName": "option2", "optionText": "..." }},
-                              {{ "optionName": "option3", "optionText": "..." }},
-                              {{ "optionName": "option4", "optionText": "..." }}
-                            ],
-                            "answerData": ["option2"]
-                        }}
-                ]
+                    "questionData": [
+                            {{
+                                "questionText": "Question text here...",
+                                "positiveMarking": 1,
+                                "negativeMarking": 0,
+                                "timeToSolve": 2,
+                                "BTLevel": 1,
+                                "difficulty": 1,
+                                "subtopicData" : [" "," "],
+                                "optionData": [
+                                {{ "optionName": "option1", "optionText": "..." }},
+                                {{ "optionName": "option2", "optionText": "..." }},
+                                {{ "optionName": "option3", "optionText": "..." }},
+                                {{ "optionName": "option4", "optionText": "..." }}
+                                ],
+                                "answerData": ["option2"]
+                            }}
+                    ]
             }}
 
             ### *9. Verification Requirements*  
